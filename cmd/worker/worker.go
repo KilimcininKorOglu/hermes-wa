@@ -173,9 +173,12 @@ func (w *WorkerInstance) runCycle() {
 
 	if success {
 		log.Printf("[%s] Success! Sent ID %d via instance %s (%s)", w.config.WorkerName, msg.ID, selectedInstance.InstanceID, selectedInstance.PhoneNumber)
-		if err := UpdateOutboxSuccess(w.ctx, msg.ID, selectedInstance.PhoneNumber); err != nil {
+		dbCtx, dbCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		if err := UpdateOutboxSuccess(dbCtx, msg.ID, selectedInstance.PhoneNumber); err != nil {
 			log.Printf("[%s] CRITICAL: Failed to update status to success for ID %d: %v", w.config.WorkerName, msg.ID, err)
 		}
+
+		dbCancel()
 
 		// Trigger Webhook
 		go w.sendWebhook(msg, 1, "success", selectedInstance.PhoneNumber, "")
@@ -184,9 +187,11 @@ func (w *WorkerInstance) runCycle() {
 		time.Sleep(time.Duration(rand.Intn(2)+1) * time.Second)
 	} else {
 		log.Printf("[%s] Failed sending ID %d: %s", w.config.WorkerName, msg.ID, apiMsg)
-		if err := UpdateOutboxFailed(w.ctx, msg.ID, apiMsg); err != nil {
+		dbCtx2, dbCancel2 := context.WithTimeout(context.Background(), 5*time.Second)
+		if err := UpdateOutboxFailed(dbCtx2, msg.ID, apiMsg); err != nil {
 			log.Printf("[%s] CRITICAL: Failed to update status to failed for ID %d: %v", w.config.WorkerName, msg.ID, err)
 		}
+		dbCancel2()
 
 		// Log significant failures (like 401 or specific API errors)
 		if strings.Contains(strings.ToLower(apiMsg), "unauthorized") || strings.Contains(strings.ToLower(apiMsg), "forbidden") {
