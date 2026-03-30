@@ -15,12 +15,14 @@ main
 pkg/
 *.out
 
-# Dependency directories (jika ada)
+# Dependency directories
 vendor/
 
 # Environment & Secrets
 .env
+.env.docker
 *.env
+!.env.example
 
 # IDE / Editor
 # VSCode
@@ -48,3 +50,7 @@ github-recovery-codes.txt
 /hermeswa
 /hermeswa-worker
 docker-data/
+
+# Air hot-reload
+/tmp/
+tmp/

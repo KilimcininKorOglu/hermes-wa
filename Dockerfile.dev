@@ -1,0 +1,18 @@
+FROM golang:1.24-bookworm
+
+WORKDIR /app
+
+# Install CGO build dependencies and air (hot-reload)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc libc6-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && go install github.com/air-verse/air@latest
+
+# Create uploads directory
+RUN mkdir -p /app/uploads/avatars /app/uploads/system
+
+ENV CGO_ENABLED=1
+
+EXPOSE 2121
+
+CMD ["air", "-c", ".air.toml"]
