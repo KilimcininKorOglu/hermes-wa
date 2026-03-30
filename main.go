@@ -412,6 +412,16 @@ func main() {
 		log.Println("⏸️  Warming Worker disabled (set WARMING_WORKER_ENABLED=true to enable)")
 	}
 
+	// =====================================================
+	// WEB UI STATIC FILES (SPA)
+	// =====================================================
+	e.Static("/assets", "./web/dist/assets")
+	e.File("/favicon.svg", "./web/dist/favicon.svg")
+	// SPA catch-all: serve index.html for all non-API routes
+	e.GET("/*", func(c echo.Context) error {
+		return c.File("./web/dist/index.html")
+	})
+
 	baseURL := os.Getenv("BASEURL")
 	if baseURL == "" {
 		log.Fatal("BASEURL is not set")
