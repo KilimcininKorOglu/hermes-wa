@@ -1,5 +1,45 @@
 # Changelog
 
+## [1.2.0] - 2026-03-30
+
+### Added
+- API key authentication system for external application integrations (SHA-256 hashed)
+- Outbox REST API for external message enqueueing (single + batch, max 1000)
+- Outbox monitoring page with filters, pagination, and detail panel
+- API key management section in profile page
+- Initial test infrastructure with phone, spintax, and API key tests
+- Shared typing delay helper (ApplyTypingDelay) replacing 13 duplicate blocks
+
+### Fixed
+- SQL injection in worker application filter (parameterized queries)
+- Path traversal in file manager prefix check
+- Dashboard connected instances count using wrong column name
+- JWT algorithm validation (HS256 only) to prevent algorithm confusion attacks
+- Per-user token invalidation on account disable
+- Data race on shared worker API client auth fields (mutex protection)
+- Shutdown cancelled context for database writes (background context with timeout)
+- Worker stuck messages at status 3 on error paths
+- API key last_used_at cancelled context for async update
+- X-API-Key missing from CORS allowed headers
+- WebSocket /ws endpoint now requires JWT auth and validates origin
+- Refresh token rotation on each use (consumed and replaced)
+- Refresh token moved from localStorage to in-memory storage
+- BlacklistAllUserTokens broken due to incorrect int-to-string conversion
+- WebSocket reconnect loop after logout
+- NULL circle crash in GetAvailableCircles query
+- Superadmin dead role check in outbox handler
+- CORS wildcard when CORS_ALLOW_ORIGINS env unset (now fatal)
+- Outbox error_count never incremented on failure
+- Warming lastReplyTime memory leak on room finish/delete
+
+### Changed
+- Dropped PM2 support in favor of Docker-only deployment
+- Config values (typing delay, feature flags) read at startup, not per-request
+- Worker graceful shutdown with WaitGroup synchronization
+- Resolved instance ID stored in middleware context to avoid duplicate DB queries
+- Removed dead code: unused audit log functions, Config struct, instancesCall variable, FetchPendingOutbox/UpdateOutboxStatus
+- Removed debug print statements from production code
+
 ## [1.1.0] - 2026-03-30
 
 ### Added
