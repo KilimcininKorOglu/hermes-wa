@@ -16,7 +16,6 @@ REST API for WhatsApp Web automation, multi-instance management, and real-time m
 - [WebSocket Events](#websocket-events)
 - [Webhook Integration](#webhook-integration)
 - [API Reference](#api-reference)
-- [Screenshots](#screenshots)
 - [Disclaimer](#disclaimer)
 
 ---
@@ -355,28 +354,6 @@ https://sudevwa.apidog.io/
 
 An OpenAPI 3.0 specification is included in `api_docs/openapi.json`.
 
----
-
-## Screenshots
-
-| Feature                | Preview                                                                                                                                                    |
-| :--------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Login / Scan QR        | <img width="1898" height="908" alt="Login" src="https://github.com/user-attachments/assets/eb800f68-34be-4485-8fe7-f3ca1c58dd39" />                        |
-| Main Dashboard         | <img width="1892" height="913" alt="Dashboard" src="https://github.com/user-attachments/assets/163b9725-9abe-42ae-b222-3dbc56f42b72" />                    |
-| Instances Management   | <img width="1876" height="913" alt="Instances" src="https://github.com/user-attachments/assets/99e0a93a-4dad-4d86-8acf-33b18c07780a" />                    |
-| Add Instances          | <img width="955" height="487" alt="Add Instance" src="https://github.com/user-attachments/assets/ecfafa8c-26af-444a-aed0-948f14ab84ec" />                  |
-| Detail Instances       | <img width="658" height="707" alt="Instance Detail" src="https://github.com/user-attachments/assets/3ef0056d-9f59-494c-b340-aaff98f20551" />               |
-| Edit Instances         | <img width="537" height="768" alt="Edit Instance" src="https://github.com/user-attachments/assets/0658a838-e3e6-4983-95de-cfed90838d17" />                 |
-| QR Code Instances      | <img width="1301" height="511" alt="QR Code" src="https://github.com/user-attachments/assets/61eb147b-c99d-45c2-b1d9-1cf58d91581c" />                      |
-| Disconnect Instances   | <img width="862" height="458" alt="Disconnect" src="https://github.com/user-attachments/assets/3a6bd749-a801-41da-9ce7-41d8a664ccdc" />                    |
-| Message Room           | <img width="1881" height="849" alt="Message Room" src="https://github.com/user-attachments/assets/d01bd6ed-1558-4629-951d-b4b5032d46f5" />                 |
-| Message Room Group     | <img width="1884" height="876" alt="Group Room" src="https://github.com/user-attachments/assets/6d795feb-5fd2-40c6-9e98-e55f3ee72896" />                   |
-| Add Warming Room       | <img width="1446" height="812" alt="Warming Room" src="https://github.com/user-attachments/assets/8a05d3a4-be9a-490d-844d-27b6a89ebfb1" />                 |
-| Number Checker         | <img width="1878" height="770" alt="Number Checker" src="https://github.com/user-attachments/assets/19b6eda2-dd89-4244-b1df-90dfc5d95bea" />               |
-| API Documentation      | <img width="1863" height="867" alt="API Docs" src="https://github.com/user-attachments/assets/689b81a2-907e-4282-b74f-7ac12aa8eeb4" />                     |
-
----
-
 ## Disclaimer
 
 This project is intended for educational and research purposes only. Use at your own risk.
@@ -386,3 +363,9 @@ This project is intended for educational and research purposes only. Use at your
 ## License
 
 See [LICENSE](LICENSE) for details.
+
+---
+
+[![Go Version](https://img.shields.io/github/go-mod/go-version/KilimcininKorOglu/hermes-wa)](https://github.com/KilimcininKorOglu/hermes-wa)
+[![GitHub issues](https://img.shields.io/github/issues/KilimcininKorOglu/hermes-wa)](https://github.com/KilimcininKorOglu/hermes-wa/issues)
+[![GitHub stars](https://img.shields.io/github/stars/KilimcininKorOglu/hermes-wa)](https://github.com/KilimcininKorOglu/hermes-wa)
