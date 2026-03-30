@@ -79,6 +79,9 @@ export function WarmingPage() {
   const [logsLoading, setLogsLoading] = useState(false)
   const [logRoomId, setLogRoomId] = useState("")
   const [logStatus, setLogStatus] = useState("")
+  const [selectedLog, setSelectedLog] = useState<WarmingLog | null>(null)
+  const [logDetail, setLogDetail] = useState<WarmingLog | null>(null)
+  const [loadingLogDetail, setLoadingLogDetail] = useState(false)
 
   // ─── FETCHERS ──────────────────────────────────────────
   const fetchRooms = useCallback(async () => {
@@ -294,6 +297,16 @@ export function WarmingPage() {
       await api.put(`/api/warming/templates/${selectedTemplate.id}`, { ...editTemplate, structure })
       toast.success("Template updated"); fetchTemplates()
     } catch { toast.error("Failed to update") } finally { setSavingTemplate(false) }
+  }
+
+  const fetchLogDetail = async (log: WarmingLog) => {
+    setSelectedLog(log)
+    setLoadingLogDetail(true)
+    try {
+      const res = await api.get<ApiResponse<WarmingLog>>(`/api/warming/logs/${log.id}`)
+      if (res.data.success && res.data.data) setLogDetail(res.data.data)
+      else setLogDetail(log)
+    } catch { setLogDetail(log) } finally { setLoadingLogDetail(false) }
   }
 
   const tabClass = (t: Tab) => `px-4 py-2 text-sm font-mono cursor-pointer border-b-2 transition-colors ${tab === t ? "border-cyber-green text-cyber-green" : "border-transparent text-cyber-green-muted hover:text-cyber-green"}`
@@ -731,7 +744,8 @@ export function WarmingPage() {
 
       {/* ═══ LOGS TAB ═══ */}
       {tab === "logs" && (
-        <div>
+        <div className="flex gap-4">
+        <div className="flex-1 min-w-0">
           <div className="flex gap-3 mb-4 items-end">
             <div className="flex-1">
               <label className="text-xs text-cyber-green-dim uppercase tracking-wider block mb-1.5">Room</label>
@@ -762,7 +776,7 @@ export function WarmingPage() {
                     <th className="text-left px-3 py-2">Status</th><th className="text-left px-3 py-2">Message</th><th className="text-right px-3 py-2">Time</th>
                   </tr></thead>
                   <tbody>{logs.map(log => (
-                    <tr key={log.id} className="border-b border-border/50 hover:bg-bg-hover">
+                    <tr key={log.id} className={`border-b border-border/50 hover:bg-bg-hover cursor-pointer ${selectedLog?.id === log.id ? "bg-cyber-green/5" : ""}`} onClick={() => fetchLogDetail(log)}>
                       <td className="px-3 py-2"><Badge variant={log.status === "SUCCESS" ? "success" : "danger"}>{log.status}</Badge></td>
                       <td className="px-3 py-2 text-cyber-green-muted max-w-md truncate">{log.messageContent}</td>
                       <td className="px-3 py-2 text-right text-cyber-green-muted">{new Date(log.executedAt).toLocaleString()}</td>
@@ -770,6 +784,61 @@ export function WarmingPage() {
                   ))}</tbody>
                 </table>
               </Card>}
+        </div>
+
+        {/* Log Detail Panel */}
+        {selectedLog && (
+          <div className="w-80 shrink-0">
+            <Card>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-cyber-green-dim uppercase">Log Detail</h3>
+                <button onClick={() => { setSelectedLog(null); setLogDetail(null) }} className="text-cyber-green-muted hover:text-cyber-green cursor-pointer"><X size={14} /></button>
+              </div>
+              {loadingLogDetail ? <p className="text-cyber-green-muted text-xs">Loading...</p> : logDetail && (
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <span className="text-cyber-green-muted">Status: </span>
+                    <Badge variant={logDetail.status === "SUCCESS" ? "success" : "danger"}>{logDetail.status}</Badge>
+                  </div>
+                  <div>
+                    <span className="text-cyber-green-dim uppercase tracking-wider block mb-1">Message</span>
+                    <p className="text-cyber-green whitespace-pre-wrap break-words bg-bg-hover p-2 border border-border">{logDetail.messageContent}</p>
+                  </div>
+                  <div>
+                    <span className="text-cyber-green-muted">Room: </span>
+                    <span className="text-cyber-green font-mono text-[10px]">{logDetail.roomId}</span>
+                  </div>
+                  <div>
+                    <span className="text-cyber-green-muted">Sender: </span>
+                    <span className="text-cyber-green font-mono text-[10px]">{logDetail.senderInstanceId}</span>
+                  </div>
+                  {logDetail.receiverInstanceId && (
+                    <div>
+                      <span className="text-cyber-green-muted">Receiver: </span>
+                      <span className="text-cyber-green font-mono text-[10px]">{logDetail.receiverInstanceId}</span>
+                    </div>
+                  )}
+                  {logDetail.scriptLineId && (
+                    <div>
+                      <span className="text-cyber-green-muted">Script Line: </span>
+                      <span className="text-cyber-green">#{logDetail.scriptLineId}</span>
+                    </div>
+                  )}
+                  {logDetail.errorMessage && (
+                    <div>
+                      <span className="text-cyber-green-dim uppercase tracking-wider block mb-1">Error</span>
+                      <p className="text-cyber-danger text-[10px] bg-cyber-danger/5 p-2 border border-cyber-danger/20">{logDetail.errorMessage}</p>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-cyber-green-muted">Time: </span>
+                    <span className="text-cyber-green">{new Date(logDetail.executedAt).toLocaleString()}</span>
+                  </div>
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
         </div>
       )}
     </div>
