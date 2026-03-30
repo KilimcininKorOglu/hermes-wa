@@ -30,7 +30,7 @@ interface ChatMessage {
   pushName?: string
 }
 
-type LeftTab = "contacts" | "groups" | "check"
+type LeftTab = "contacts" | "groups" | "check" | "manual"
 type SendMode = "instance" | "phone"
 
 export function MessagesPage() {
@@ -101,12 +101,28 @@ export function MessagesPage() {
     } catch { setGroups([]) }
   }, [selectedInstance])
 
+  const fetchGroupsByPhone = useCallback(async () => {
+    if (!senderPhone) return
+    try {
+      const res = await api.get<ApiResponse<{ groups: Group[]; total: number }>>(`/api/groups/by-number/${senderPhone}`)
+      if (res.data.success && res.data.data) {
+        setGroups(res.data.data.groups || [])
+      }
+    } catch { setGroups([]) }
+  }, [senderPhone])
+
   useEffect(() => {
     if (selectedInstance) {
       fetchContacts()
       fetchGroups()
     }
   }, [selectedInstance, fetchContacts, fetchGroups])
+
+  useEffect(() => {
+    if (sendMode === "phone" && senderPhone) {
+      fetchGroupsByPhone()
+    }
+  }, [sendMode, senderPhone, fetchGroupsByPhone])
 
   // WebSocket for incoming messages (instance mode only)
   useEffect(() => {
@@ -146,10 +162,13 @@ export function MessagesPage() {
     setRecipientName("")
     setIsGroup(false)
     setMessages([])
+    setGroups([])
     if (mode === "phone") {
       setSelectedInstance("")
+      setLeftTab("groups")
     } else {
       setSenderPhone("")
+      setLeftTab("contacts")
     }
   }
 
@@ -372,18 +391,43 @@ export function MessagesPage() {
           </>
         )}
 
-        {/* Phone mode: manual recipient input */}
+        {/* Phone mode: groups + manual tabs */}
         {sendMode === "phone" && senderPhone && (
-          <Card className="p-3 space-y-2">
-            <label className="text-[10px] text-cyber-green-dim uppercase tracking-wider block">Recipient</label>
-            <input value={recipient} onChange={(e) => { setRecipient(e.target.value); setRecipientName("") }}
-              placeholder="905xxxxxxxxx or group JID"
-              className="w-full bg-bg-input border border-border text-cyber-green px-2 py-1.5 text-xs font-mono focus:outline-none focus:border-cyber-green/50" />
-            <label className="flex items-center gap-2 text-[10px] text-cyber-green cursor-pointer">
-              <input type="checkbox" checked={isGroup} onChange={(e) => setIsGroup(e.target.checked)} className="accent-cyber-green" />
-              Group Message
-            </label>
-          </Card>
+          <>
+            <div className="flex border-b border-border">
+              <button onClick={() => setLeftTab("groups")} className={tabClass("groups")}><UsersIcon size={10} className="inline mr-0.5" /> Groups</button>
+              <button onClick={() => setLeftTab("manual")} className={tabClass("manual")}><UserIcon size={10} className="inline mr-0.5" /> Manual</button>
+            </div>
+
+            {leftTab === "groups" && (
+              <div className="flex-1 overflow-y-auto">
+                {groups.length === 0 ? <p className="text-cyber-green-muted text-xs p-2">No groups found</p> :
+                  groups.map((g) => (
+                    <button key={g.jid} onClick={() => selectContact(g.jid, g.name, true)}
+                      className={`w-full text-left px-2 py-1.5 text-xs hover:bg-bg-hover transition-colors cursor-pointer flex items-center gap-2 ${recipient === g.jid ? "bg-cyber-green/5 border-l-2 border-cyber-green" : "border-l-2 border-transparent"}`}>
+                      <UsersIcon size={12} className="text-cyber-green-muted shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-cyber-green truncate">{g.name}</p>
+                        <p className="text-[10px] text-cyber-green-muted">{g.participants} members</p>
+                      </div>
+                    </button>
+                  ))}
+              </div>
+            )}
+
+            {leftTab === "manual" && (
+              <Card className="p-3 space-y-2">
+                <label className="text-[10px] text-cyber-green-dim uppercase tracking-wider block">Recipient</label>
+                <input value={recipient} onChange={(e) => { setRecipient(e.target.value); setRecipientName("") }}
+                  placeholder="905xxxxxxxxx or group JID"
+                  className="w-full bg-bg-input border border-border text-cyber-green px-2 py-1.5 text-xs font-mono focus:outline-none focus:border-cyber-green/50" />
+                <label className="flex items-center gap-2 text-[10px] text-cyber-green cursor-pointer">
+                  <input type="checkbox" checked={isGroup} onChange={(e) => setIsGroup(e.target.checked)} className="accent-cyber-green" />
+                  Group Message
+                </label>
+              </Card>
+            )}
+          </>
         )}
 
         {/* WS Status (instance mode only) */}
