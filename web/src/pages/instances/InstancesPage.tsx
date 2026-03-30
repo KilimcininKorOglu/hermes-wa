@@ -28,9 +28,9 @@ export function InstancesPage() {
 
   const fetchInstances = useCallback(async () => {
     try {
-      const res = await api.get<ApiResponse<Instance[]>>("/api/instances?all=true")
+      const res = await api.get<ApiResponse<{ instances: Instance[]; total: number }>>("/api/instances?all=true")
       if (res.data.success && res.data.data) {
-        setInstances(res.data.data)
+        setInstances(res.data.data.instances || [])
       }
     } catch {
       toast.error("Failed to fetch instances")

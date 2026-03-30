@@ -11,13 +11,30 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': apiTarget,
-      '/login': apiTarget,
-      '/register': apiTarget,
-      '/refresh': apiTarget,
       '/uploads': apiTarget,
       '/ws': {
         target: wsTarget,
         ws: true,
+      },
+      // /login, /register, /refresh are both SPA routes and API endpoints.
+      // Only proxy non-GET requests (POST) to the API backend.
+      '/login': {
+        target: apiTarget,
+        bypass: (req) => {
+          if (req.method === 'GET') return req.url
+        },
+      },
+      '/register': {
+        target: apiTarget,
+        bypass: (req) => {
+          if (req.method === 'GET') return req.url
+        },
+      },
+      '/refresh': {
+        target: apiTarget,
+        bypass: (req) => {
+          if (req.method === 'GET') return req.url
+        },
       },
     },
   },
