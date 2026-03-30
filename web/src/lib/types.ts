@@ -83,11 +83,15 @@ export interface WarmingScript {
 }
 
 export interface WarmingLog {
-  id: string
+  id: number
   roomId: string
-  status: string
-  message: string
-  timestamp: string
+  scriptLineId?: number
+  senderInstanceId: string
+  receiverInstanceId?: string
+  messageContent: string
+  status: "SUCCESS" | "FAILED"
+  errorMessage?: string
+  executedAt: string
 }
 
 // Worker
@@ -132,6 +136,80 @@ export interface FileEntry {
   isDir: boolean
   size?: number
   modTime: string
+}
+
+// Warming Room Create
+export interface CreateWarmingRoomRequest {
+  name: string
+  senderInstanceId: string
+  receiverInstanceId?: string
+  scriptId: number
+  intervalMinSeconds: number
+  intervalMaxSeconds: number
+  sendRealMessage: boolean
+  roomType: "BOT_VS_BOT" | "HUMAN_VS_BOT"
+  whitelistedNumber?: string
+  replyDelayMin?: number
+  replyDelayMax?: number
+  aiEnabled?: boolean
+  aiProvider?: string
+  aiModel?: string
+  aiSystemPrompt?: string
+  aiTemperature?: number
+  aiMaxTokens?: number
+  fallbackToScript?: boolean
+}
+
+// Warming Script Line
+export interface WarmingScriptLine {
+  id: number
+  scriptId: number
+  sequenceOrder: number
+  actorRole: "ACTOR_A" | "ACTOR_B"
+  messageContent: string
+  typingDurationSec: number
+  createdAt: string
+}
+
+// Warming Template
+export interface WarmingTemplate {
+  id: number
+  category: string
+  name: string
+  structure: unknown
+  createdBy: number
+  createdAt: string
+  updatedAt: string
+}
+
+// Contact
+export interface Contact {
+  jid: string
+  phoneNumber: string
+  name: string
+  isGroup: boolean
+  businessName?: string
+  pushName?: string
+  profilePicture?: string
+  about?: string
+  isBusiness?: boolean
+}
+
+// Group
+export interface Group {
+  jid: string
+  name: string
+  topic: string
+  participants: number
+  ownerJid: string
+  createdAt: number
+}
+
+// Device Info
+export interface DeviceInfo {
+  instanceId: string
+  jid: string
+  phoneNumber: string
 }
 
 // WebSocket

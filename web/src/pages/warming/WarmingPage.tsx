@@ -312,9 +312,9 @@ export function WarmingPage() {
                           {log.status}
                         </Badge>
                       </td>
-                      <td className="px-3 py-2 text-cyber-green-muted max-w-md truncate">{log.message}</td>
+                      <td className="px-3 py-2 text-cyber-green-muted max-w-md truncate">{log.messageContent}</td>
                       <td className="px-3 py-2 text-right text-cyber-green-muted">
-                        {new Date(log.timestamp).toLocaleString()}
+                        {new Date(log.executedAt).toLocaleString()}
                       </td>
                     </tr>
                   ))}
