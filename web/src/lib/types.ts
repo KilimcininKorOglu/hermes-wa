@@ -122,6 +122,37 @@ export interface WorkerConfig {
   updated_at: string
 }
 
+// API Keys
+export interface APIKey {
+  id: number
+  key_prefix: string
+  name: string
+  application?: string
+  enabled: boolean
+  last_used_at?: string
+  created_at: string
+}
+
+// Outbox
+export interface OutboxMessage {
+  id_outbox: number
+  type: number
+  from_number?: string
+  client_id?: number
+  destination: string
+  messages: string
+  status: number
+  status_text: string
+  priority: number
+  application?: string
+  sending_date_time?: string
+  insert_date_time: string
+  table_id?: string
+  file?: string
+  error_count: number
+  msg_error?: string
+}
+
 // Admin
 export interface AdminStats {
   totalUsers: number

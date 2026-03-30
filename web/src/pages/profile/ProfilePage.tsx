@@ -1,12 +1,12 @@
-import { useState, useEffect, type FormEvent } from "react"
+import { useState, useEffect, useCallback, type FormEvent } from "react"
 import { useAuthStore } from "../../stores/authStore"
 import { Card } from "../../components/ui/Card"
 import { Button } from "../../components/ui/Button"
 import { Input } from "../../components/ui/Input"
 import { Badge } from "../../components/ui/Badge"
-import { UserCircle, Key, Upload } from "lucide-react"
+import { UserCircle, Key, Upload, Plus, Trash2, Copy, X } from "lucide-react"
 import api from "../../lib/api"
-import type { ApiResponse, User } from "../../lib/types"
+import type { ApiResponse, User, APIKey } from "../../lib/types"
 import toast from "react-hot-toast"
 
 export function ProfilePage() {
@@ -20,11 +20,58 @@ export function ProfilePage() {
 
   const [uploading, setUploading] = useState(false)
 
+  // API Keys
+  const [apiKeys, setApiKeys] = useState<APIKey[]>([])
+  const [showCreateKey, setShowCreateKey] = useState(false)
+  const [newKeyName, setNewKeyName] = useState("")
+  const [newKeyApp, setNewKeyApp] = useState("")
+  const [creatingKey, setCreatingKey] = useState(false)
+  const [generatedKey, setGeneratedKey] = useState("")
+
   useEffect(() => {
     if (user) {
       setFullName(user.full_name || "")
     }
   }, [user])
+
+  const fetchApiKeys = useCallback(async () => {
+    try {
+      const res = await api.get<ApiResponse<APIKey[]>>("/api/api-keys")
+      if (res.data.success && res.data.data) setApiKeys(res.data.data)
+    } catch { /* ignore */ }
+  }, [])
+
+  useEffect(() => { fetchApiKeys() }, [fetchApiKeys])
+
+  const handleCreateKey = async () => {
+    if (!newKeyName) return
+    setCreatingKey(true)
+    try {
+      const res = await api.post<ApiResponse<{ id: number; key: string }>>("/api/api-keys", {
+        name: newKeyName, application: newKeyApp || undefined,
+      })
+      if (res.data.success && res.data.data) {
+        setGeneratedKey(res.data.data.key)
+        setNewKeyName("")
+        setNewKeyApp("")
+        fetchApiKeys()
+      } else { toast.error(res.data.message) }
+    } catch { toast.error("Failed to create API key") } finally { setCreatingKey(false) }
+  }
+
+  const handleDeleteKey = async (id: number) => {
+    if (!confirm("Delete this API key? Any integrations using it will stop working.")) return
+    try {
+      await api.delete(`/api/api-keys/${id}`)
+      toast.success("API key deleted")
+      fetchApiKeys()
+    } catch { toast.error("Failed to delete") }
+  }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    toast.success("Copied to clipboard")
+  }
 
   const handleUpdateProfile = async (e: FormEvent) => {
     e.preventDefault()
@@ -167,7 +214,7 @@ export function ProfilePage() {
       </Card>
 
       {/* Change Password */}
-      <Card>
+      <Card className="mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Key size={16} className="text-cyber-green-dim" />
           <h3 className="text-sm font-bold text-cyber-green-dim uppercase tracking-wider">
@@ -195,6 +242,70 @@ export function ProfilePage() {
             Update Password
           </Button>
         </form>
+      </Card>
+
+      {/* API Keys */}
+      <Card>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Key size={16} className="text-cyber-green-dim" />
+            <h3 className="text-sm font-bold text-cyber-green-dim uppercase tracking-wider">API Keys</h3>
+          </div>
+          <Button size="sm" onClick={() => { setShowCreateKey(true); setGeneratedKey("") }}>
+            <Plus size={14} className="mr-1" /> Generate Key
+          </Button>
+        </div>
+
+        {/* Generated key banner (shown once) */}
+        {generatedKey && (
+          <div className="mb-4 p-3 border border-cyber-green/30 bg-cyber-green/5">
+            <p className="text-xs text-cyber-green-dim uppercase mb-1.5">Your new API key (shown once):</p>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 text-xs text-cyber-green font-mono bg-bg-input px-2 py-1.5 border border-border select-all break-all">{generatedKey}</code>
+              <button onClick={() => copyToClipboard(generatedKey)} className="text-cyber-green-muted hover:text-cyber-green cursor-pointer shrink-0"><Copy size={14} /></button>
+            </div>
+            <button onClick={() => setGeneratedKey("")} className="text-[10px] text-cyber-green-muted hover:text-cyber-green mt-2 cursor-pointer">Dismiss</button>
+          </div>
+        )}
+
+        {/* Create key form */}
+        {showCreateKey && !generatedKey && (
+          <div className="mb-4 p-3 border border-border space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-cyber-green-dim uppercase font-bold">New API Key</p>
+              <button onClick={() => setShowCreateKey(false)} className="text-cyber-green-muted hover:text-cyber-green cursor-pointer"><X size={14} /></button>
+            </div>
+            <Input label="Name" value={newKeyName} onChange={(e) => setNewKeyName(e.target.value)} placeholder="e.g. Marketing CRM" />
+            <Input label="Application (optional)" value={newKeyApp} onChange={(e) => setNewKeyApp(e.target.value)} placeholder="Lock to specific application" />
+            <Button size="sm" onClick={handleCreateKey} loading={creatingKey} disabled={!newKeyName}>Generate</Button>
+          </div>
+        )}
+
+        {/* Key list */}
+        {apiKeys.length === 0 ? (
+          <p className="text-cyber-green-muted text-xs text-center py-4">No API keys. Generate one to integrate external applications.</p>
+        ) : (
+          <div className="space-y-2">
+            {apiKeys.map((k) => (
+              <div key={k.id} className="flex items-center justify-between text-xs px-2 py-2 border border-border hover:bg-bg-hover transition-colors">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-cyber-green font-bold">{k.name}</span>
+                    <code className="text-cyber-green-muted font-mono text-[10px]">{k.key_prefix}...</code>
+                    {k.application && <Badge variant="info">{k.application}</Badge>}
+                  </div>
+                  <p className="text-[10px] text-cyber-green-muted mt-0.5">
+                    Created: {new Date(k.created_at).toLocaleDateString()}
+                    {k.last_used_at && ` | Last used: ${new Date(k.last_used_at).toLocaleDateString()}`}
+                  </p>
+                </div>
+                <Button variant="danger" size="sm" onClick={() => handleDeleteKey(k.id)}>
+                  <Trash2 size={12} />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
     </div>
   )
