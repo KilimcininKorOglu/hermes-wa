@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-primary: #000000;
+  --color-bg-secondary: #0a0a0a;
+  --color-bg-card: #111111;
+  --color-bg-hover: #1a1a1a;
+  --color-bg-input: #0d0d0d;
+
+  --color-border: #1f1f1f;
+  --color-border-glow: rgba(0, 255, 65, 0.2);
+
+  --color-cyber-green: #00ff41;
+  --color-cyber-green-dim: #00cc33;
+  --color-cyber-green-muted: #4a7c59;
+  --color-cyber-white: #e0e0e0;
+  --color-cyber-danger: #ff0040;
+  --color-cyber-warning: #ffaa00;
+
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-display: swap;
+  src: url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap");
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-cyber-green-muted) var(--color-bg-secondary);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-bg-primary);
+  color: var(--color-cyber-green);
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: rgba(0, 255, 65, 0.3);
+  color: #ffffff;
+}
+
+input,
+textarea,
+select {
+  font-family: var(--font-mono);
+}
+
+a {
+  color: var(--color-cyber-green);
+  text-decoration: none;
+}
+
+a:hover {
+  text-shadow: 0 0 8px rgba(0, 255, 65, 0.5);
+}

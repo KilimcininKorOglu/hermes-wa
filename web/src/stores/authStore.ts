@@ -1,0 +1,80 @@
+import { create } from "zustand"
+import type { User, AuthResponse, ApiResponse } from "../lib/types"
+import api from "../lib/api"
+
+interface AuthState {
+  user: User | null
+  isAuthenticated: boolean
+  isLoading: boolean
+
+  login: (username: string, password: string) => Promise<void>
+  register: (username: string, email: string, password: string, fullName?: string) => Promise<void>
+  logout: () => Promise<void>
+  fetchProfile: () => Promise<void>
+  setUser: (user: User) => void
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  isAuthenticated: !!localStorage.getItem("access_token"),
+  isLoading: false,
+
+  login: async (username, password) => {
+    const res = await api.post<ApiResponse<AuthResponse>>("/login", { username, password })
+    if (res.data.success && res.data.data) {
+      const { access_token, refresh_token, user } = res.data.data
+      localStorage.setItem("access_token", access_token)
+      localStorage.setItem("refresh_token", refresh_token)
+      set({ user, isAuthenticated: true })
+    } else {
+      throw new Error(res.data.message)
+    }
+  },
+
+  register: async (username, email, password, fullName) => {
+    const res = await api.post<ApiResponse<AuthResponse>>("/register", {
+      username,
+      email,
+      password,
+      full_name: fullName,
+    })
+    if (res.data.success && res.data.data) {
+      const { access_token, refresh_token, user } = res.data.data
+      localStorage.setItem("access_token", access_token)
+      localStorage.setItem("refresh_token", refresh_token)
+      set({ user, isAuthenticated: true })
+    } else {
+      throw new Error(res.data.message)
+    }
+  },
+
+  logout: async () => {
+    const refreshToken = localStorage.getItem("refresh_token")
+    try {
+      await api.post("/api/logout", { refresh_token: refreshToken })
+    } catch {
+      // Ignore logout errors
+    }
+    localStorage.removeItem("access_token")
+    localStorage.removeItem("refresh_token")
+    set({ user: null, isAuthenticated: false })
+  },
+
+  fetchProfile: async () => {
+    set({ isLoading: true })
+    try {
+      const res = await api.get<ApiResponse<User>>("/api/me")
+      if (res.data.success && res.data.data) {
+        set({ user: res.data.data, isAuthenticated: true })
+      }
+    } catch {
+      localStorage.removeItem("access_token")
+      localStorage.removeItem("refresh_token")
+      set({ user: null, isAuthenticated: false })
+    } finally {
+      set({ isLoading: false })
+    }
+  },
+
+  setUser: (user) => set({ user }),
+}))

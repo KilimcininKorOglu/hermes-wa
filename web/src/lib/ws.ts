@@ -1,0 +1,76 @@
+import type { WsEvent } from "./types"
+
+type WsHandler = (event: WsEvent) => void
+
+class WebSocketClient {
+  private ws: WebSocket | null = null
+  private handlers: Map<string, WsHandler[]> = new Map()
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null
+  private url: string
+
+  constructor(path: string) {
+    const proto = window.location.protocol === "https:" ? "wss:" : "ws:"
+    this.url = `${proto}//${window.location.host}${path}`
+  }
+
+  connect() {
+    if (this.ws?.readyState === WebSocket.OPEN) return
+
+    this.ws = new WebSocket(this.url)
+
+    this.ws.onmessage = (event) => {
+      try {
+        const wsEvent: WsEvent = JSON.parse(event.data)
+        const handlers = this.handlers.get(wsEvent.event) || []
+        handlers.forEach((h) => h(wsEvent))
+
+        // Also fire wildcard handlers
+        const wildcardHandlers = this.handlers.get("*") || []
+        wildcardHandlers.forEach((h) => h(wsEvent))
+      } catch {
+        // Ignore non-JSON messages
+      }
+    }
+
+    this.ws.onclose = () => {
+      this.scheduleReconnect()
+    }
+
+    this.ws.onerror = () => {
+      this.ws?.close()
+    }
+  }
+
+  disconnect() {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer)
+      this.reconnectTimer = null
+    }
+    this.ws?.close()
+    this.ws = null
+  }
+
+  on(event: string, handler: WsHandler) {
+    const existing = this.handlers.get(event) || []
+    existing.push(handler)
+    this.handlers.set(event, existing)
+  }
+
+  off(event: string, handler: WsHandler) {
+    const existing = this.handlers.get(event) || []
+    this.handlers.set(
+      event,
+      existing.filter((h) => h !== handler)
+    )
+  }
+
+  private scheduleReconnect() {
+    if (this.reconnectTimer) return
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null
+      this.connect()
+    }, 3000)
+  }
+}
+
+export const globalWs = new WebSocketClient("/ws")
