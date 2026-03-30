@@ -267,6 +267,25 @@ func main() {
 	api.POST("/system/identity", handler.UpdateSystemIdentityFull, customMiddleware.RequireAdmin) // Unified: Text + Logos (Admin Only)
 
 	// =====================================================
+	// ADMIN ROUTES (Admin Only)
+	// =====================================================
+	admin := api.Group("/admin", customMiddleware.RequireAdmin)
+	admin.GET("/users", handler.ListUsers)
+	admin.GET("/users/:id", handler.GetUser)
+	admin.PATCH("/users/:id", handler.UpdateUser)
+	admin.DELETE("/users/:id", handler.DeleteUser)
+	admin.GET("/users/:id/instances", handler.GetUserInstances)
+	admin.POST("/users/:id/instances", handler.AssignInstance)
+	admin.DELETE("/users/:id/instances/:instanceId", handler.RevokeInstance)
+	admin.GET("/stats", handler.GetStats)
+
+	// =====================================================
+	// FILE MANAGER ROUTES (JWT required, delete = admin only)
+	// =====================================================
+	api.GET("/files", handler.ListFiles)
+	api.DELETE("/files", handler.DeleteFile, customMiddleware.RequireAdmin)
+
+	// =====================================================
 	// WHATSAPP INSTANCE ROUTES (JWT required)
 	// =====================================================
 
