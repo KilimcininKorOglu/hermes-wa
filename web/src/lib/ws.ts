@@ -16,7 +16,11 @@ class WebSocketClient {
   connect() {
     if (this.ws?.readyState === WebSocket.OPEN) return
 
-    this.ws = new WebSocket(this.url)
+    const token = localStorage.getItem("access_token")
+    if (!token) return
+
+    const separator = this.url.includes("?") ? "&" : "?"
+    this.ws = new WebSocket(`${this.url}${separator}token=${token}`)
 
     this.ws.onopen = () => {
       this.reconnectAttempts = 0
