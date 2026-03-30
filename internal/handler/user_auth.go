@@ -173,7 +173,7 @@ func RefreshToken(c echo.Context) error {
 	}
 
 	// Validate refresh token and generate new access token
-	accessToken, user, err := service.RefreshAccessToken(req.RefreshToken)
+	accessToken, newRefreshToken, user, err := service.RefreshAccessToken(req.RefreshToken)
 	if err != nil {
 		if err == model.ErrTokenNotFound || err == model.ErrTokenExpired || err == model.ErrTokenRevoked {
 			return ErrorResponse(c, http.StatusUnauthorized, "Invalid or expired refresh token", "INVALID_REFRESH_TOKEN", err.Error())
@@ -182,8 +182,9 @@ func RefreshToken(c echo.Context) error {
 	}
 
 	return SuccessResponse(c, http.StatusOK, "Token refreshed successfully", map[string]interface{}{
-		"access_token": accessToken,
-		"user":         user.ToResponse(),
+		"access_token":  accessToken,
+		"refresh_token": newRefreshToken,
+		"user":          user.ToResponse(),
 	})
 }
 

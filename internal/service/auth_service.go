@@ -205,31 +205,40 @@ func GenerateRefreshTokenForUser(user *model.User, ipAddress, userAgent string) 
 }
 
 // RefreshAccessToken validates refresh token and generates new access token
-func RefreshAccessToken(refreshTokenString string) (string, *model.User, error) {
+func RefreshAccessToken(refreshTokenString string) (string, string, *model.User, error) {
 	// Get refresh token from database
 	refreshToken, err := model.GetRefreshToken(refreshTokenString)
 	if err != nil {
-		return "", nil, err
+		return "", "", nil, err
 	}
 
 	// Get user
 	user, err := model.GetUserByID(refreshToken.UserID)
 	if err != nil {
-		return "", nil, err
+		return "", "", nil, err
 	}
 
 	// Check if user is still active
 	if !user.IsActive {
-		return "", nil, errors.New("user account is disabled")
+		return "", "", nil, errors.New("user account is disabled")
 	}
+
+	// Revoke the consumed refresh token (rotation)
+	_ = model.RevokeRefreshToken(refreshTokenString)
 
 	// Generate new access token
 	accessToken, err := GenerateAccessToken(user)
 	if err != nil {
-		return "", nil, err
+		return "", "", nil, err
 	}
 
-	return accessToken, user, nil
+	// Generate new refresh token (rotation)
+	newRefreshToken, err := GenerateRefreshTokenForUser(user, "", "")
+	if err != nil {
+		return "", "", nil, err
+	}
+
+	return accessToken, newRefreshToken, user, nil
 }
 
 // ValidateAccessToken validates JWT access token and returns claims
