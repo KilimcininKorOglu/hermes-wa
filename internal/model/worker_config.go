@@ -239,7 +239,7 @@ func GetEnabledConfigs(ctx context.Context) ([]WorkerConfig, error) {
 
 // GetAvailableCircles retrieves distinct circles from instances table
 func GetAvailableCircles(ctx context.Context) ([]string, error) {
-	query := `SELECT DISTINCT circle FROM instances WHERE used = true ORDER BY circle`
+	query := `SELECT DISTINCT circle FROM instances WHERE used = true AND circle IS NOT NULL AND circle != '' ORDER BY circle`
 
 	rows, err := database.AppDB.QueryContext(ctx, query)
 	if err != nil {
