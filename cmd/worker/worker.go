@@ -127,16 +127,18 @@ func (w *WorkerInstance) runCycle() {
 	// 3. Get Instances for this Circle
 	instances, err := w.client.GetInstances(w.config.Circle)
 	if err != nil {
-		msg := fmt.Sprintf("Error fetching instances: %v", err)
-		log.Printf("[%s] %s", w.config.WorkerName, msg)
-		LogWorkerEvent(w.config.ID, w.config.WorkerName, "ERROR", msg)
+		errMsg := fmt.Sprintf("Error fetching instances: %v", err)
+		log.Printf("[%s] %s", w.config.WorkerName, errMsg)
+		LogWorkerEvent(w.config.ID, w.config.WorkerName, "ERROR", errMsg)
+		UpdateOutboxFailed(context.Background(), msg.ID, errMsg)
 		return
 	}
 
 	if len(instances) == 0 {
-		msg := fmt.Sprintf("No used instances found in circle: %s", w.config.Circle)
-		log.Printf("[%s] %s", w.config.WorkerName, msg)
-		LogWorkerEvent(w.config.ID, w.config.WorkerName, "WARN", msg)
+		errMsg := fmt.Sprintf("No used instances found in circle: %s", w.config.Circle)
+		log.Printf("[%s] %s", w.config.WorkerName, errMsg)
+		LogWorkerEvent(w.config.ID, w.config.WorkerName, "WARN", errMsg)
+		UpdateOutboxFailed(context.Background(), msg.ID, errMsg)
 		return
 	}
 
@@ -165,9 +167,10 @@ func (w *WorkerInstance) runCycle() {
 	}
 
 	if err != nil {
-		msg := fmt.Sprintf("Error calling API (Instance %s): %v", selectedInstance.InstanceID, err)
-		log.Printf("[%s] %s", w.config.WorkerName, msg)
-		LogWorkerEvent(w.config.ID, w.config.WorkerName, "ERROR", msg)
+		errMsg := fmt.Sprintf("Error calling API (Instance %s): %v", selectedInstance.InstanceID, err)
+		log.Printf("[%s] %s", w.config.WorkerName, errMsg)
+		LogWorkerEvent(w.config.ID, w.config.WorkerName, "ERROR", errMsg)
+		UpdateOutboxFailed(context.Background(), msg.ID, errMsg)
 		return
 	}
 
