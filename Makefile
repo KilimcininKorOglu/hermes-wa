@@ -55,6 +55,9 @@ fmt:
 vet:
 	go vet ./...
 
+test:
+	go test ./internal/... -v -count=1
+
 lint: fmt vet
 
 help:
