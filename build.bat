@@ -1,7 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
 
-set BINARY_NAME=btk-sorgu
 set BUILD_DIR=bin
 
 :: Get version info
@@ -20,8 +19,18 @@ if "%~1"=="" goto help
 goto %~1
 
 :build
+    call :build-api
+    call :build-worker
+    goto end
+
+:build-api
     if not exist %BUILD_DIR% mkdir %BUILD_DIR%
-    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\%BINARY_NAME%.exe .
+    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\hermeswa.exe .
+    goto end
+
+:build-worker
+    if not exist %BUILD_DIR% mkdir %BUILD_DIR%
+    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\worker.exe ./cmd/worker/
     goto end
 
 :clean
@@ -29,29 +38,9 @@ goto %~1
     go clean
     goto end
 
-:test
-    go test ./...
-    goto end
-
-:test-race
-    go test -race ./...
-    goto end
-
-:test-cover
-    go test -cover ./...
-    goto end
-
-:test-verbose
-    go test -v ./...
-    goto end
-
-:bench
-    go test -bench=. -benchmem ./...
-    goto end
-
 :run
-    call :build
-    %BUILD_DIR%\%BINARY_NAME%.exe
+    call :build-api
+    %BUILD_DIR%\hermeswa.exe
     goto end
 
 :fmt
@@ -69,14 +58,11 @@ goto %~1
 
 :help
     echo Available commands:
-    echo   build        - Build the binary to bin\
+    echo   build        - Build both API server and worker
+    echo   build-api    - Build API server only
+    echo   build-worker - Build worker only
     echo   clean        - Remove build artifacts
-    echo   test         - Run all tests
-    echo   test-race    - Run tests with race detector
-    echo   test-cover   - Run tests with coverage
-    echo   test-verbose - Run tests with verbose output
-    echo   bench        - Run benchmarks
-    echo   run          - Build and run the server
+    echo   run          - Build and run the API server
     echo   fmt          - Format code
     echo   vet          - Run go vet
     echo   lint         - Run fmt and vet
