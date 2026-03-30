@@ -227,7 +227,7 @@ func GetAdminStats() (*AdminStats, error) {
 	db.QueryRow(`SELECT COUNT(*) FROM users`).Scan(&stats.TotalUsers)
 	db.QueryRow(`SELECT COUNT(*) FROM users WHERE is_active = true`).Scan(&stats.ActiveUsers)
 	db.QueryRow(`SELECT COUNT(*) FROM instances`).Scan(&stats.TotalInstances)
-	db.QueryRow(`SELECT COUNT(*) FROM instances WHERE connected = true`).Scan(&stats.ConnectedInstances)
+	db.QueryRow(`SELECT COUNT(*) FROM instances WHERE is_connected = true`).Scan(&stats.ConnectedInstances)
 	db.QueryRow(`SELECT COUNT(*) FROM warming_rooms WHERE status = 'ACTIVE'`).Scan(&stats.ActiveWarmingRooms)
 	db.QueryRow(`SELECT COUNT(*) FROM outbox_worker_config WHERE enabled = true`).Scan(&stats.ActiveWorkers)
 
