@@ -13,6 +13,7 @@ import { ContactsPage } from "./pages/contacts/ContactsPage"
 import { FilesPage } from "./pages/files/FilesPage"
 import { WarmingPage } from "./pages/warming/WarmingPage"
 import { BlastPage } from "./pages/blast/BlastPage"
+import { OutboxPage } from "./pages/outbox/OutboxPage"
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage"
 import { ProfilePage } from "./pages/profile/ProfilePage"
 import { SystemPage } from "./pages/system/SystemPage"
@@ -72,6 +73,7 @@ export default function App() {
           <Route path="/files" element={<FilesPage />} />
           <Route path="/warming/rooms" element={<WarmingPage />} />
           <Route path="/blast" element={<BlastPage />} />
+          <Route path="/outbox" element={<OutboxPage />} />
           <Route path="/admin/users" element={<AdminUsersPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/system" element={<SystemPage />} />

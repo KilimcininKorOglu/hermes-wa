@@ -7,6 +7,7 @@ import {
   FolderOpen,
   Flame,
   Rocket,
+  Mail,
   Users,
   UserCircle,
   Settings,
@@ -22,6 +23,7 @@ const navItems = [
   { to: "/files", icon: FolderOpen, label: "Files" },
   { to: "/warming/rooms", icon: Flame, label: "Warming" },
   { to: "/blast", icon: Rocket, label: "Blast" },
+  { to: "/outbox", icon: Mail, label: "Outbox" },
 ]
 
 const adminItems = [
