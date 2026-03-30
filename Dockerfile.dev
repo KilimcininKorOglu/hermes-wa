@@ -6,7 +6,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc libc6-dev \
     && rm -rf /var/lib/apt/lists/* \
-    && go install github.com/air-verse/air@latest
+    && go install github.com/air-verse/air@v1.61.7
 
 # Create uploads directory
 RUN mkdir -p /app/uploads/avatars /app/uploads/system

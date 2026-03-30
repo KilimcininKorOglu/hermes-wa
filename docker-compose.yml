@@ -14,7 +14,8 @@ services:
       test: ["CMD-SHELL", "pg_isready -U hermeswa"]
       interval: 3s
       timeout: 3s
-      retries: 10
+      retries: 15
+      start_period: 10s
 
   api:
     build:
@@ -57,6 +58,12 @@ services:
       api:
         condition: service_healthy
     command: ["go", "run", "./cmd/worker/"]
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'cmd/worker' || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
 
   web:
     image: node:22-alpine
@@ -70,3 +77,9 @@ services:
     depends_on:
       api:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://localhost:5173/ || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
