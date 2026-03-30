@@ -18,6 +18,8 @@ REST API for WhatsApp Web automation, multi-instance management, and real-time m
 - [Outbox REST API](#outbox-rest-api)
 - [WebSocket Events](#websocket-events)
 - [Webhook Integration](#webhook-integration)
+- [Admin API](#admin-api)
+- [Contacts API](#contacts-api)
 - [API Reference](#api-reference)
 - [Disclaimer](#disclaimer)
 
@@ -91,11 +93,11 @@ REST API for WhatsApp Web automation, multi-instance management, and real-time m
 
 **Configuration modes:**
 
-| Mode               | Value                    | Behavior                   |
-| :----------------- | :----------------------- | :------------------------- |
-| Single Application | `application = "App1"`   | Dedicated worker for one   |
-| Multi-Application  | `application = "A, B, C"`| Sequential processing      |
-| Wildcard           | `application = "*"`      | Process all pending        |
+| Mode               | Value                     | Behavior                 |
+|:-------------------|:--------------------------|:-------------------------|
+| Single Application | `application = "App1"`    | Dedicated worker for one |
+| Multi-Application  | `application = "A, B, C"` | Sequential processing    |
+| Wildcard           | `application = "*"`       | Process all pending      |
 
 **Processing cycle:**
 
@@ -119,16 +121,16 @@ REST API for WhatsApp Web automation, multi-instance management, and real-time m
 
 ## Tech Stack
 
-| Component  | Technology                                                  |
-| :--------- | :---------------------------------------------------------- |
-| Language   | Go 1.24+                                                    |
-| Framework  | [Echo v4](https://echo.labstack.com/)                       |
-| WhatsApp   | [whatsmeow](https://github.com/tulir/whatsmeow)            |
-| Database   | PostgreSQL 12+                                              |
-| WebSocket  | [Gorilla WebSocket](https://github.com/gorilla/websocket)   |
-| AI         | Google Gemini API                                           |
-| Frontend   | React 19 + Vite + TypeScript + TailwindCSS v4              |
-| Container  | Docker / Docker Compose                                     |
+| Component | Technology                                                |
+|:----------|:----------------------------------------------------------|
+| Language  | Go 1.24+                                                  |
+| Framework | [Echo v4](https://echo.labstack.com/)                     |
+| WhatsApp  | [whatsmeow](https://github.com/tulir/whatsmeow)           |
+| Database  | PostgreSQL 12+                                            |
+| WebSocket | [Gorilla WebSocket](https://github.com/gorilla/websocket) |
+| AI        | Google Gemini API                                         |
+| Frontend  | React 19 + Vite + TypeScript + TailwindCSS v4             |
+| Container | Docker / Docker Compose                                   |
 
 ---
 
@@ -141,6 +143,7 @@ REST API for WhatsApp Web automation, multi-instance management, and real-time m
 - PostgreSQL 12 or later
 - Make (build tool)
 - Docker and Docker Compose
+- (Cross-compilation only) Zig (`brew install zig`)
 
 ### Build
 
@@ -191,12 +194,12 @@ docker compose logs -f
 docker compose down
 ```
 
-| Service    | Port | Description                    |
-| :--------- | :--- | :----------------------------- |
-| `postgres` | 5432 | PostgreSQL database            |
-| `api`      | 2121 | Go API server (hot-reload)     |
-| `worker`   | --   | Blast outbox worker            |
-| `web`      | 5174 | Vite dev server (React UI)     |
+| Service    | Port | Description                |
+|:-----------|:-----|:---------------------------|
+| `postgres` | 5432 | PostgreSQL database        |
+| `api`      | 2121 | Go API server (hot-reload) |
+| `worker`   | --   | Blast outbox worker        |
+| `web`      | 5174 | Vite dev server (React UI) |
 
 All volumes bind-mount to `docker-data/` directory. The API server uses `air` for hot-reload during development.
 
@@ -210,19 +213,19 @@ A cyberpunk-themed dark web interface built with React 19, Vite, TypeScript, and
 
 ### Pages
 
-| Page           | Description                                                   |
-| :------------- | :------------------------------------------------------------ |
-| Dashboard      | Admin stats + live WebSocket event feed                       |
-| Instances      | CRUD, QR scan, detail panel (edit, device info, webhook)      |
-| Messages       | By-instance and by-phone modes, contacts/groups tabs, media   |
-| Contacts       | Paginated table, detail panel, mutual groups, XLSX/CSV export |
-| Files          | Upload browser, breadcrumbs, preview, admin delete            |
-| Warming        | Rooms (play/pause/stop), scripts, templates, logs             |
-| Blast          | Worker config CRUD with circle/app selectors                  |
-| Outbox         | Message queue monitoring with filters and detail panel        |
-| Admin Users    | User management, role change, instance assignment             |
-| Profile        | Edit name, password, avatar upload, API key management        |
-| System         | Company identity and logo uploads                             |
+| Page        | Description                                                   |
+|:------------|:--------------------------------------------------------------|
+| Dashboard   | Admin stats + live WebSocket event feed                       |
+| Instances   | CRUD, QR scan, detail panel (edit, device info, webhook)      |
+| Messages    | By-instance and by-phone modes, contacts/groups tabs, media   |
+| Contacts    | Paginated table, detail panel, mutual groups, XLSX/CSV export |
+| Files       | Upload browser, breadcrumbs, preview, admin delete            |
+| Warming     | Rooms (play/pause/stop), scripts, templates, logs             |
+| Blast       | Worker config CRUD with circle/app selectors                  |
+| Outbox      | Message queue monitoring with filters and detail panel        |
+| Admin Users | User management, role change, instance assignment             |
+| Profile     | Edit name, password, avatar upload, API key management        |
+| System      | Company identity and logo uploads                             |
 
 ### Build Frontend
 
@@ -242,73 +245,73 @@ Configure these in your `.env` file.
 
 ### Core Configuration
 
-| Variable             | Description                                         | Default | Example                                  |
-| :------------------- | :-------------------------------------------------- | :------ | :--------------------------------------- |
-| `DATABASE_URL`       | PostgreSQL URL for whatsmeow session storage        | --      | `postgres://user:pass@localhost:5432/db`  |
-| `APP_DATABASE_URL`   | PostgreSQL URL for application data                 | --      | `postgres://user:pass@localhost:5432/app` |
-| `OUTBOX_DATABASE_URL`| PostgreSQL URL for outbox (optional)                | --      | `postgres://user:pass@localhost:5432/outbox` |
-| `JWT_SECRET`         | Secret key for JWT authentication                   | --      | `your-secret-key`                        |
-| `PORT`               | Server listening port                               | `2121`  | `3000`                                   |
-| `BASEURL`            | Base URL/Host of the server                         | --      | `127.0.0.1`                              |
-| `CORS_ALLOW_ORIGINS` | Allowed origins for CORS                            | --      | `http://localhost:3000`                  |
+| Variable              | Description                                  | Default | Example                                      |
+|:----------------------|:---------------------------------------------|:--------|:---------------------------------------------|
+| `DATABASE_URL`        | PostgreSQL URL for whatsmeow session storage | --      | `postgres://user:pass@localhost:5432/db`     |
+| `APP_DATABASE_URL`    | PostgreSQL URL for application data          | --      | `postgres://user:pass@localhost:5432/app`    |
+| `OUTBOX_DATABASE_URL` | PostgreSQL URL for outbox (optional)         | --      | `postgres://user:pass@localhost:5432/outbox` |
+| `JWT_SECRET`          | Secret key for JWT authentication            | --      | `your-secret-key`                            |
+| `PORT`                | Server listening port                        | `2121`  | `3000`                                       |
+| `BASEURL`             | Base URL/Host of the server                  | --      | `127.0.0.1`                                  |
+| `CORS_ALLOW_ORIGINS`  | Allowed origins for CORS                     | --      | `http://localhost:3000`                      |
 
 ### Features
 
-| Variable                                   | Description                                  | Default | Example |
-| :----------------------------------------- | :------------------------------------------- | :------ | :------ |
-| `HERMESWA_ENABLE_WEBSOCKET_INCOMING_MSG`   | Enable incoming message WebSocket broadcast  | `false` | `true`  |
-| `HERMESWA_ENABLE_WEBHOOK`                  | Enable global incoming message webhooks      | `false` | `true`  |
-| `HERMESWA_TYPING_DELAY_MIN`               | Minimum typing simulation delay (seconds)    | `1`     | `2`     |
-| `HERMESWA_TYPING_DELAY_MAX`               | Maximum typing simulation delay (seconds)    | `3`     | `5`     |
-| `ALLOW_9_DIGIT_PHONE_NUMBER`              | Allow 9-digit numbers without validation     | `false` | `true`  |
+| Variable                                 | Description                                 | Default | Example |
+|:-----------------------------------------|:--------------------------------------------|:--------|:--------|
+| `HERMESWA_ENABLE_WEBSOCKET_INCOMING_MSG` | Enable incoming message WebSocket broadcast | `false` | `true`  |
+| `HERMESWA_ENABLE_WEBHOOK`                | Enable global incoming message webhooks     | `false` | `true`  |
+| `HERMESWA_TYPING_DELAY_MIN`              | Minimum typing simulation delay (seconds)   | `1`     | `2`     |
+| `HERMESWA_TYPING_DELAY_MAX`              | Maximum typing simulation delay (seconds)   | `3`     | `5`     |
+| `ALLOW_9_DIGIT_PHONE_NUMBER`             | Allow 9-digit numbers without validation    | `false` | `true`  |
 
 ### Rate Limiting
 
-| Variable                   | Description                    | Default | Example |
-| :------------------------- | :----------------------------- | :------ | :------ |
-| `RATE_LIMIT_PER_SECOND`   | API requests allowed per second| `10`    | `20`    |
-| `RATE_LIMIT_BURST`        | Max burst of requests          | `10`    | `20`    |
-| `RATE_LIMIT_WINDOW_MINUTES`| Rate limit expiration window  | `3`     | `5`     |
+| Variable                    | Description                     | Default | Example |
+|:----------------------------|:--------------------------------|:--------|:--------|
+| `RATE_LIMIT_PER_SECOND`     | API requests allowed per second | `10`    | `20`    |
+| `RATE_LIMIT_BURST`          | Max burst of requests           | `10`    | `20`    |
+| `RATE_LIMIT_WINDOW_MINUTES` | Rate limit expiration window    | `3`     | `5`     |
 
 ### File Upload Limits (MB)
 
-| Variable                   | Description            | Default | Example |
-| :------------------------- | :--------------------- | :------ | :------ |
-| `MAX_FILE_SIZE_IMAGE_MB`   | Max image upload size  | `5`     | `10`    |
-| `MAX_FILE_SIZE_VIDEO_MB`   | Max video upload size  | `16`    | `32`    |
-| `MAX_FILE_SIZE_AUDIO_MB`   | Max audio upload size  | `16`    | `32`    |
-| `MAX_FILE_SIZE_DOCUMENT_MB`| Max document upload size| `100`  | `200`   |
+| Variable                    | Description              | Default | Example |
+|:----------------------------|:-------------------------|:--------|:--------|
+| `MAX_FILE_SIZE_IMAGE_MB`    | Max image upload size    | `5`     | `10`    |
+| `MAX_FILE_SIZE_VIDEO_MB`    | Max video upload size    | `16`    | `32`    |
+| `MAX_FILE_SIZE_AUDIO_MB`    | Max audio upload size    | `16`    | `32`    |
+| `MAX_FILE_SIZE_DOCUMENT_MB` | Max document upload size | `100`   | `200`   |
 
 ### Warming System
 
-| Variable                           | Description                              | Default | Example |
-| :--------------------------------- | :--------------------------------------- | :------ | :------ |
-| `WARMING_WORKER_ENABLED`           | Enable conversation simulation           | `false` | `true`  |
-| `WARMING_WORKER_INTERVAL_SECONDS`  | Interval between worker checks           | `5`     | `10`    |
-| `WARMING_AUTO_REPLY_ENABLED`       | Enable AI/Auto-reply in warming rooms    | `false` | `true`  |
-| `WARMING_AUTO_REPLY_COOLDOWN`      | Cooldown between auto-replies (seconds)  | `60`    | `10`    |
-| `DEFAULT_REPLY_DELAY_MIN`          | Min delay before auto-reply (seconds)    | `10`    | `5`     |
-| `DEFAULT_REPLY_DELAY_MAX`          | Max delay before auto-reply (seconds)    | `60`    | `30`    |
+| Variable                          | Description                             | Default | Example |
+|:----------------------------------|:----------------------------------------|:--------|:--------|
+| `WARMING_WORKER_ENABLED`          | Enable conversation simulation          | `false` | `true`  |
+| `WARMING_WORKER_INTERVAL_SECONDS` | Interval between worker checks          | `5`     | `10`    |
+| `WARMING_AUTO_REPLY_ENABLED`      | Enable AI/Auto-reply in warming rooms   | `false` | `true`  |
+| `WARMING_AUTO_REPLY_COOLDOWN`     | Cooldown between auto-replies (seconds) | `60`    | `10`    |
+| `DEFAULT_REPLY_DELAY_MIN`         | Min delay before auto-reply (seconds)   | `10`    | `5`     |
+| `DEFAULT_REPLY_DELAY_MAX`         | Max delay before auto-reply (seconds)   | `60`    | `30`    |
 
 ### AI Configuration (Gemini)
 
-| Variable                       | Description                              | Default          | Example        |
-| :----------------------------- | :--------------------------------------- | :--------------- | :------------- |
-| `AI_ENABLED`                   | Enable AI-powered features               | `false`          | `true`         |
-| `AI_DEFAULT_PROVIDER`          | AI provider                              | `gemini`         | `openai`       |
-| `GEMINI_API_KEY`               | Google Gemini API Key                    | --               | `AIzaSy...`    |
-| `GEMINI_DEFAULT_MODEL`         | Default Gemini model                     | `gemini-1.5-flash`| `gemini-pro`  |
-| `AI_CONVERSATION_HISTORY_LIMIT`| Previous messages for context            | `10`             | `20`           |
-| `AI_DEFAULT_TEMPERATURE`       | Response randomness (0.0 to 1.0)         | `0.7`            | `0.5`          |
-| `AI_DEFAULT_MAX_TOKENS`        | Max tokens for AI response               | `150`            | `300`          |
+| Variable                        | Description                      | Default            | Example      |
+|:--------------------------------|:---------------------------------|:-------------------|:-------------|
+| `AI_ENABLED`                    | Enable AI-powered features       | `false`            | `true`       |
+| `AI_DEFAULT_PROVIDER`           | AI provider                      | `gemini`           | `openai`     |
+| `GEMINI_API_KEY`                | Google Gemini API Key            | --                 | `AIzaSy...`  |
+| `GEMINI_DEFAULT_MODEL`          | Default Gemini model             | `gemini-1.5-flash` | `gemini-pro` |
+| `AI_CONVERSATION_HISTORY_LIMIT` | Previous messages for context    | `10`               | `20`         |
+| `AI_DEFAULT_TEMPERATURE`        | Response randomness (0.0 to 1.0) | `0.7`              | `0.5`        |
+| `AI_DEFAULT_MAX_TOKENS`         | Max tokens for AI response       | `150`              | `300`        |
 
 ### Worker Blast Outbox
 
-| Variable            | Description                             | Default                  | Example                    |
-| :------------------ | :-------------------------------------- | :----------------------- | :------------------------- |
-| `OUTBOX_API_BASEURL`| Base URL for WhatsApp API (worker)      | `http://localhost:2121`  | `https://api.example.com`  |
-| `OUTBOX_API_USER`   | Username for worker API authentication  | --                       | `worker_user`              |
-| `OUTBOX_API_PASS`   | Password for worker API authentication  | --                       | `worker_pass`              |
+| Variable             | Description                            | Default                 | Example                   |
+|:---------------------|:---------------------------------------|:------------------------|:--------------------------|
+| `OUTBOX_API_BASEURL` | Base URL for WhatsApp API (worker)     | `http://localhost:2121` | `https://api.example.com` |
+| `OUTBOX_API_USER`    | Username for worker API authentication | --                      | `worker_user`             |
+| `OUTBOX_API_PASS`    | Password for worker API authentication | --                      | `worker_pass`             |
 
 The worker runs as a standalone binary and communicates with the main API to send messages. It reads configurations from `APP_DATABASE_URL` and processes messages from `OUTBOX_DATABASE_URL` (falls back to `APP_DATABASE_URL` if not set).
 
@@ -318,15 +321,22 @@ The worker runs as a standalone binary and communicates with the main API to sen
 
 ### Docker Production Build
 
+The production image uses a 3-stage build (Node frontend + Go backend + Debian runtime). The image contains both the API server binary and the worker binary, but `CMD` only starts the API server. Run the worker as a separate container from the same image.
+
 ```bash
-# Build production image (3-stage: Node + Go + Debian runtime)
+# Build production image
 docker build -t hermeswa:latest .
 
-# Run
-docker run -d --name hermeswa \
+# Run API server
+docker run -d --name hermeswa-api \
   --env-file .env \
   -p 2121:2121 \
   hermeswa:latest
+
+# Run worker (same image, different entrypoint)
+docker run -d --name hermeswa-worker \
+  --env-file .env \
+  hermeswa:latest ./worker
 ```
 
 ### Cross-compilation
@@ -390,6 +400,16 @@ Content-Type: application/json
 }
 ```
 
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Message enqueued",
+  "data": { "id_outbox": 42 }
+}
+```
+
 ### Enqueue a Batch
 
 ```http
@@ -408,6 +428,16 @@ Content-Type: application/json
 ```
 
 Maximum 1000 messages per batch.
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Batch enqueued",
+  "data": { "ids": [42, 43], "count": 2 }
+}
+```
 
 ### Check Message Status
 
@@ -429,19 +459,21 @@ X-API-Key: hwa_your_api_key_here
 
 ## WebSocket Events
 
-### Global WebSocket -- System Events
+### Global WebSocket -- System Events (No Auth)
 
 ```
 ws://{host}:{port}/ws
 ```
 
-Monitors QR code generation, login/logout events, connection status changes, and system-wide notifications for all instances.
+Public endpoint. Monitors QR code generation, login/logout events, connection status changes, and system-wide notifications for all instances.
 
-### Instance-Specific WebSocket -- Incoming Messages
+### Instance-Specific WebSocket -- Incoming Messages (JWT Required)
 
 ```
 ws://{host}:{port}/api/listen/{instanceId}?token={jwt_token}
 ```
+
+Requires JWT token as query parameter. Only streams messages for the specified instance.
 
 **Event payload:**
 
@@ -484,7 +516,7 @@ Content-Type: application/json
 When a secret is configured, HERMESWA signs every outgoing webhook using HMAC-SHA256:
 
 | Detail    | Value                              |
-| :-------- | :--------------------------------- |
+|:----------|:-----------------------------------|
 | Header    | `X-HERMESWA-Signature`             |
 | Algorithm | HMAC-SHA256                        |
 | Message   | Raw HTTP request body              |
@@ -492,15 +524,60 @@ When a secret is configured, HERMESWA signs every outgoing webhook using HMAC-SH
 
 **Webhook payload** follows the same format as the WebSocket `incoming_message` event shown above.
 
+### Worker Outbox Callback
+
+When the blast outbox worker processes a message, it sends a webhook callback to the `webhook_url` configured in the worker config:
+
+```json
+{
+  "event": "outbox.processed",
+  "timestamp": "2026-03-30T12:00:00Z",
+  "data": {
+    "id_outbox": 42,
+    "status": 1,
+    "status_text": "success",
+    "destination": "905xxxxxxxxx",
+    "from_number": "905111111111",
+    "application": "marketing",
+    "table_id": "order_12345",
+    "error_msg": ""
+  }
+}
+```
+
+Signed with `X-HERMESWA-Signature` (HMAC-SHA256) if `webhook_secret` is configured.
+
+---
+
+## Admin API
+
+Admin-only endpoints (requires JWT with `admin` role):
+
+| Method | Endpoint                                     | Description                    |
+|:-------|:---------------------------------------------|:-------------------------------|
+| GET    | `/api/admin/stats`                           | System-wide statistics         |
+| GET    | `/api/admin/users`                           | List all users (paginated)     |
+| GET    | `/api/admin/users/:id`                       | Get user details               |
+| PATCH  | `/api/admin/users/:id`                       | Update user (role, active)     |
+| DELETE | `/api/admin/users/:id`                       | Delete user                    |
+| GET    | `/api/admin/users/:id/instances`             | List user's assigned instances |
+| POST   | `/api/admin/users/:id/instances`             | Assign instance to user        |
+| DELETE | `/api/admin/users/:id/instances/:instanceId` | Revoke instance from user      |
+
+## Contacts API
+
+Contact management endpoints (requires JWT + instance access):
+
+| Method | Endpoint                                       | Description                       |
+|:-------|:-----------------------------------------------|:----------------------------------|
+| GET    | `/api/contacts/:instanceId`                    | List contacts (paginated, search) |
+| GET    | `/api/contacts/:instanceId/export?format=xlsx` | Export contacts (xlsx or csv)     |
+| GET    | `/api/contacts/:instanceId/:jid`               | Contact detail by JID             |
+| GET    | `/api/contacts/:instanceId/:jid/mutual-groups` | Mutual groups with contact        |
+
 ---
 
 ## API Reference
-
-Full API documentation is available at:
-
-```
-https://sudevwa.apidog.io/
-```
 
 An OpenAPI 3.0 specification is included in `api_docs/openapi.json`.
 
