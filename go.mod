@@ -3,8 +3,8 @@ module hermeswa
 go 1.24.3
 
 require (
-	github.com/chai2010/webp v1.4.0
 	github.com/disintegration/imaging v1.6.2
+	github.com/go-sql-driver/mysql v1.9.3
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
@@ -12,6 +12,7 @@ require (
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/lib/pq v1.10.9
 	github.com/mat/besticon v3.12.0+incompatible
+	github.com/vegidio/webp-go v0.0.0-20251220093554-d304ec2dc4e6
 	github.com/xuri/excelize/v2 v2.10.0
 	go.mau.fi/whatsmeow v0.0.0-20260116142645-06f473759141
 	golang.org/x/crypto v0.47.0
@@ -28,7 +29,6 @@ require (
 	github.com/beeper/argo-go v1.1.2 // indirect
 	github.com/coder/websocket v1.8.14 // indirect
 	github.com/elliotchance/orderedmap/v3 v3.1.0 // indirect
-	github.com/go-sql-driver/mysql v1.9.3 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect

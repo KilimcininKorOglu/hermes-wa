@@ -33,6 +33,55 @@ goto %~1
     go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\worker.exe ./cmd/worker/
     goto end
 
+:build-linux
+    where zig >nul 2>&1 || (echo ERROR: zig is required for cross-compilation. Install from https://ziglang.org/download/ && exit /b 1)
+    if not exist %BUILD_DIR% mkdir %BUILD_DIR%
+    set CGO_ENABLED=1
+    set GOOS=linux
+    set GOARCH=amd64
+    set CC=zig cc -target x86_64-linux
+    set CXX=zig c++ -target x86_64-linux
+    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\hermeswa_linux_amd64 .
+    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\worker_linux_amd64 ./cmd/worker/
+    set GOARCH=arm64
+    set CC=zig cc -target aarch64-linux
+    set CXX=zig c++ -target aarch64-linux
+    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\hermeswa_linux_arm64 .
+    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\worker_linux_arm64 ./cmd/worker/
+    goto end
+
+:build-windows
+    if not exist %BUILD_DIR% mkdir %BUILD_DIR%
+    set CGO_ENABLED=1
+    set GOOS=windows
+    set GOARCH=amd64
+    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\hermeswa_windows_amd64.exe .
+    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\worker_windows_amd64.exe ./cmd/worker/
+    goto end
+
+:build-darwin
+    where zig >nul 2>&1 || (echo ERROR: zig is required for cross-compilation. Install from https://ziglang.org/download/ && exit /b 1)
+    if not exist %BUILD_DIR% mkdir %BUILD_DIR%
+    set CGO_ENABLED=1
+    set GOOS=darwin
+    set GOARCH=amd64
+    set CC=zig cc -target x86_64-macos
+    set CXX=zig c++ -target x86_64-macos
+    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\hermeswa_darwin_amd64 .
+    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\worker_darwin_amd64 ./cmd/worker/
+    set GOARCH=arm64
+    set CC=zig cc -target aarch64-macos
+    set CXX=zig c++ -target aarch64-macos
+    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\hermeswa_darwin_arm64 .
+    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\worker_darwin_arm64 ./cmd/worker/
+    goto end
+
+:build-all
+    call :build-linux
+    call :build-windows
+    call :build-darwin
+    goto end
+
 :clean
     if exist %BUILD_DIR% rmdir /s /q %BUILD_DIR%
     go clean
@@ -58,16 +107,20 @@ goto %~1
 
 :help
     echo Available commands:
-    echo   build        - Build both API server and worker
-    echo   build-api    - Build API server only
-    echo   build-worker - Build worker only
-    echo   clean        - Remove build artifacts
-    echo   run          - Build and run the API server
-    echo   fmt          - Format code
-    echo   vet          - Run go vet
-    echo   lint         - Run fmt and vet
+    echo   build          - Build both binaries (current OS/arch)
+    echo   build-api      - Build API server only
+    echo   build-worker   - Build worker only
+    echo   build-linux    - Cross-compile for Linux (amd64 + arm64)
+    echo   build-windows  - Cross-compile for Windows (amd64)
+    echo   build-darwin   - Cross-compile for macOS (amd64 + arm64)
+    echo   build-all      - Cross-compile for all platforms
+    echo   clean          - Remove build artifacts
+    echo   run            - Build and run the API server
+    echo   fmt            - Format code
+    echo   vet            - Run go vet
+    echo   lint           - Run fmt and vet
     echo.
-    echo Cross-platform builds are handled by GoReleaser (goreleaser-cross).
+    echo Cross-compilation requires zig (https://ziglang.org/download/)
     goto end
 
 :end

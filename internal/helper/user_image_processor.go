@@ -12,7 +12,7 @@ import (
 	"mime/multipart"
 	"strings"
 
-	"github.com/chai2010/webp"
+	"github.com/vegidio/webp-go"
 	"github.com/disintegration/imaging"
 	_ "github.com/mat/besticon/ico"
 )
@@ -134,15 +134,14 @@ func ValidateDecompressedSize(img image.Image) error {
 
 // convertToWebPWithSizeLimit converts image to WebP with iterative quality reduction
 func convertToWebPWithSizeLimit(img image.Image) ([]byte, error) {
-	qualities := []float32{85, 75, 60, 50, 40}
+	qualities := []int{85, 75, 60, 50, 40}
 
 	for _, quality := range qualities {
 		var buf bytes.Buffer
 
 		// Encode to WebP
 		if err := webp.Encode(&buf, img, &webp.Options{
-			Lossless: false,
-			Quality:  quality,
+			Quality: quality,
 		}); err != nil {
 			return nil, fmt.Errorf("failed to encode WebP: %w", err)
 		}
