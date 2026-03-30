@@ -659,7 +659,6 @@ func GetActiveRoomsForWorker(limit int) ([]WarmingRoom, error) {
 		  AND next_run_at <= NOW()
 		ORDER BY next_run_at ASC
 		LIMIT $1
-		FOR UPDATE SKIP LOCKED
 	`
 
 	rows, err := database.AppDB.Query(query, limit)
