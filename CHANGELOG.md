@@ -1,5 +1,35 @@
 # Changelog
 
+## [1.1.0] - 2026-03-30
+
+### Added
+- By-phone-number message sending mode with toggle in Messages page
+- Group listing in phone mode via GET /api/groups/by-number endpoint
+- Script edit side panel in warming page (title, description, category)
+- Room edit side panel with full AI configuration support
+- Template edit side panel with JSON structure editing
+- Warming log detail side panel with full message and error info
+- Per-instance status refresh button in instance detail panel
+- Blast config edit side panel with webhook URL/secret
+- Standalone Contacts page with paginated table, detail panel, mutual groups, XLSX/CSV export
+- Instance detail panel with edit form, device info, and webhook config
+- Messages page rewrite with contacts/groups tabs, media send (file+URL), group messaging, number check
+- Warming system wizard (3-step room create), inline script lines (add/edit/delete/AI gen/reorder), templates tab
+- Auto-seed admin user (admin/admin123) on startup if none exists
+
+### Fixed
+- API response parsing for instances, warming rooms, and scripts (nested objects not flat arrays)
+- Blast outbox interval field name (interval_seconds not interval_min_seconds)
+- Vite proxy bypass for GET /login route conflict with SPA
+- Docker web dev port changed to 5174 to avoid conflict
+- Docker Vite proxy target uses service name (api:2121) not localhost
+- Docker init-db.sql made idempotent with pg_database check
+- Healthchecks added to all Docker containers
+
+### Changed
+- WarmingRoom type extended with AI and reply delay fields
+- npm dependencies updated
+
 ## [1.0.0] - 2026-03-30
 
 ### Added
