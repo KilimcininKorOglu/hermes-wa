@@ -2,7 +2,7 @@
 
 **WhatsApp Multi-Instance Automation API**
 
-REST API for WhatsApp Web automation, multi-instance management, and real-time messaging built with Go, Echo v4, and whatsmeow.
+REST API for WhatsApp Web automation, multi-instance management, and real-time messaging built with Go, Echo v4, and whatsmeow. Includes a cyberpunk-themed React web UI and a standalone blast outbox worker.
 
 ---
 
@@ -11,8 +11,11 @@ REST API for WhatsApp Web automation, multi-instance management, and real-time m
 - [Key Features](#key-features)
 - [Tech Stack](#tech-stack)
 - [Getting Started](#getting-started)
+- [Docker Development](#docker-development)
+- [Web UI](#web-ui)
 - [Environment Variables](#environment-variables)
 - [Deployment](#deployment)
+- [Outbox REST API](#outbox-rest-api)
 - [WebSocket Events](#websocket-events)
 - [Webhook Integration](#webhook-integration)
 - [API Reference](#api-reference)
@@ -32,11 +35,13 @@ REST API for WhatsApp Web automation, multi-instance management, and real-time m
 - Instance availability control via `used` flag and `description` field
 - Graceful logout with complete cleanup (device store + session memory)
 - Circle-based grouping to organize instances by category
+- Per-instance status refresh via REST API
 
 ### Messaging
 
 - Send text messages by instance ID or by phone number
 - Send media (image, video, document, audio) from URL or file upload
+- Group messaging by instance ID or by phone number
 - Recipient number validation before sending
 - Human-like typing simulation with variable speed, composing/paused presence, and random delays
 - Real-time incoming message listener via WebSocket per instance
@@ -54,6 +59,7 @@ REST API for WhatsApp Web automation, multi-instance management, and real-time m
 - Randomized interval control between messages (min/max seconds)
 - Real-time monitoring via WebSocket events
 - Drag-and-drop script line reordering
+- AI-powered script line generation
 
 ### Real-time Features (WebSocket)
 
@@ -101,6 +107,14 @@ REST API for WhatsApp Web automation, multi-instance management, and real-time m
 6. Sleeps for configured interval (with random jitter if `interval_max` set)
 7. Repeats
 
+### API Key Authentication
+
+- API key system for external application integrations
+- Keys are SHA-256 hashed in database (raw key shown once on creation)
+- Per-key application scope locking (optional)
+- Key management via JWT-protected endpoints
+- Last-used tracking for audit purposes
+
 ---
 
 ## Tech Stack
@@ -113,7 +127,8 @@ REST API for WhatsApp Web automation, multi-instance management, and real-time m
 | Database   | PostgreSQL 12+                                              |
 | WebSocket  | [Gorilla WebSocket](https://github.com/gorilla/websocket)   |
 | AI         | Google Gemini API                                           |
-| Process    | PM2 (production)                                            |
+| Frontend   | React 19 + Vite + TypeScript + TailwindCSS v4              |
+| Process    | PM2 (production) / Docker (development)                     |
 
 ---
 
@@ -122,21 +137,28 @@ REST API for WhatsApp Web automation, multi-instance management, and real-time m
 ### Prerequisites
 
 - Go 1.24 or later
+- Node.js 22+ and npm (for frontend)
 - PostgreSQL 12 or later
-- (Optional) Separate PostgreSQL database for outbox
+- Make (build tool)
+- (Optional) Docker and Docker Compose for development
 - (Optional) PM2 for production process management
 
 ### Build
 
+All build operations go through the Makefile:
+
 ```bash
-# API Server
-go build -o hermeswa main.go
+# Build both API server and worker
+make build
 
-# Worker
-go build -o worker ./cmd/worker/
+# Build frontend
+cd web && npm install && npm run build
 
-# Make executable (Linux/macOS)
-chmod +x hermeswa worker
+# Lint (format + vet)
+make lint
+
+# Clean build artifacts
+make clean
 ```
 
 ### Run
@@ -147,11 +169,71 @@ cp .env.example .env
 # Edit .env with your settings
 
 # Start API server
-./hermeswa
+./bin/hermeswa
 
 # Start worker (separate terminal)
-./worker
+./bin/worker
 ```
+
+---
+
+## Docker Development
+
+A full Docker Compose development environment is included:
+
+```bash
+# Start all services (PostgreSQL + API + Worker + Web)
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop
+docker compose down
+```
+
+| Service    | Port | Description                    |
+| :--------- | :--- | :----------------------------- |
+| `postgres` | 5432 | PostgreSQL database            |
+| `api`      | 2121 | Go API server (hot-reload)     |
+| `worker`   | --   | Blast outbox worker            |
+| `web`      | 5174 | Vite dev server (React UI)     |
+
+All volumes bind-mount to `docker-data/` directory. The API server uses `air` for hot-reload during development.
+
+An admin user (`admin` / `admin123`) is automatically created on first startup if no admin exists in the database.
+
+---
+
+## Web UI
+
+A cyberpunk-themed dark web interface built with React 19, Vite, TypeScript, and TailwindCSS v4.
+
+### Pages
+
+| Page           | Description                                                   |
+| :------------- | :------------------------------------------------------------ |
+| Dashboard      | Admin stats + live WebSocket event feed                       |
+| Instances      | CRUD, QR scan, detail panel (edit, device info, webhook)      |
+| Messages       | By-instance and by-phone modes, contacts/groups tabs, media   |
+| Contacts       | Paginated table, detail panel, mutual groups, XLSX/CSV export |
+| Files          | Upload browser, breadcrumbs, preview, admin delete            |
+| Warming        | Rooms (play/pause/stop), scripts, templates, logs             |
+| Blast          | Worker config CRUD with circle/app selectors                  |
+| Outbox         | Message queue monitoring with filters and detail panel        |
+| Admin Users    | User management, role change, instance assignment             |
+| Profile        | Edit name, password, avatar upload, API key management        |
+| System         | Company identity and logo uploads                             |
+
+### Build Frontend
+
+```bash
+cd web
+npm install
+npm run build
+```
+
+The built frontend is served as static files from the Go binary (`web/dist/`).
 
 ---
 
@@ -237,23 +319,44 @@ The worker runs as a standalone binary and communicates with the main API to sen
 
 ### Running with PM2 (Production)
 
-The project includes an `ecosystem.config.js` for PM2:
+PM2 is a process manager that keeps your Go binaries alive, handles restarts on crash, manages logs, and enables auto-start on system boot. The project includes an `ecosystem.config.js` that manages both the API server and worker:
 
 ```bash
+# Build first
+make build
+
 # Start both API and worker
 pm2 start ecosystem.config.js
 
-# Save and enable startup
+# Save and enable startup on boot
 pm2 save
 pm2 startup
+
+# Monitor
+pm2 monit
+
+# View logs
+pm2 logs
+```
+
+### Docker Production Build
+
+```bash
+# Build production image (3-stage: Node + Go + Debian runtime)
+docker build -t hermeswa:latest .
+
+# Run
+docker run -d --name hermeswa \
+  --env-file .env \
+  -p 2121:2121 \
+  hermeswa:latest
 ```
 
 ### Cross-compilation
 
 ```bash
-# From macOS/Windows to Linux
-GOOS=linux GOARCH=amd64 go build -o hermeswa main.go
-GOOS=linux GOARCH=amd64 go build -o worker ./cmd/worker/
+# Using Makefile (requires zig for CGO cross-compilation)
+make build-all
 ```
 
 ### Auto-migration
@@ -266,6 +369,84 @@ The application automatically updates the database schema on startup:
 - Preserves existing data and custom columns
 
 No manual migration commands are needed.
+
+---
+
+## Outbox REST API
+
+External applications can enqueue WhatsApp messages via REST API using API keys instead of direct database access.
+
+### Generate an API Key
+
+Create an API key from the Profile page in the web UI, or via the API:
+
+```http
+POST /api/api-keys
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+```
+
+```json
+{
+  "name": "My CRM Integration",
+  "application": "marketing"
+}
+```
+
+The raw key (`hwa_...`) is returned once and cannot be retrieved again. Store it securely.
+
+### Enqueue a Single Message
+
+```http
+POST /api/outbox/enqueue
+X-API-Key: hwa_your_api_key_here
+Content-Type: application/json
+```
+
+```json
+{
+  "destination": "905xxxxxxxxx",
+  "message": "Hello from my app!",
+  "application": "marketing",
+  "table_id": "order_12345",
+  "file": "https://example.com/receipt.pdf"
+}
+```
+
+### Enqueue a Batch
+
+```http
+POST /api/outbox/enqueue-batch
+X-API-Key: hwa_your_api_key_here
+Content-Type: application/json
+```
+
+```json
+{
+  "messages": [
+    { "destination": "905xxx", "message": "Message 1", "application": "marketing" },
+    { "destination": "905yyy", "message": "Message 2", "application": "marketing" }
+  ]
+}
+```
+
+Maximum 1000 messages per batch.
+
+### Check Message Status
+
+```http
+GET /api/outbox/status/42
+X-API-Key: hwa_your_api_key_here
+```
+
+Status codes: `0` = Pending, `1` = Sent, `2` = Failed, `3` = Processing
+
+### List Messages
+
+```http
+GET /api/outbox/messages?application=marketing&status=0&page=1&limit=50
+X-API-Key: hwa_your_api_key_here
+```
 
 ---
 
@@ -282,13 +463,7 @@ Monitors QR code generation, login/logout events, connection status changes, and
 ### Instance-Specific WebSocket -- Incoming Messages
 
 ```
-ws://{host}:{port}/api/listen/{instanceId}
-```
-
-Requires authentication:
-
-```http
-Authorization: Bearer {token}
+ws://{host}:{port}/api/listen/{instanceId}?token={jwt_token}
 ```
 
 **Event payload:**
