@@ -51,13 +51,6 @@ func LogAction(log *AuditLog) error {
 		RETURNING id, created_at
 	`
 
-	// DEBUG: Log query parameters
-	fmt.Printf("🔍 DEBUG [audit_log.go]: Executing INSERT query\n")
-	fmt.Printf("🔍 DEBUG [audit_log.go]: UserID=%v, Action=%s, ResourceType=%v, ResourceID=%v\n",
-		log.UserID, log.Action, log.ResourceType, log.ResourceID)
-	fmt.Printf("🔍 DEBUG [audit_log.go]: IPAddress=%v, UserAgent=%v, Details=%v\n",
-		log.IPAddress, log.UserAgent, detailsJSON)
-
 	err := db.QueryRow(
 		query,
 		log.UserID,
@@ -70,11 +63,9 @@ func LogAction(log *AuditLog) error {
 	).Scan(&log.ID, &log.CreatedAt)
 
 	if err != nil {
-		fmt.Printf("❌ DEBUG [audit_log.go]: Query failed: %v\n", err)
 		return err
 	}
 
-	fmt.Printf("✅ DEBUG [audit_log.go]: Audit log inserted with ID=%d\n", log.ID)
 	return nil
 }
 

@@ -314,13 +314,6 @@ func eventHandler(instanceID string) func(evt interface{}) {
 				messageText = v.Message.GetVideoMessage().GetCaption()
 			}
 
-			fmt.Printf("📨 Received message from %s: %s\n", v.Info.Sender, messageText)
-
-			// Debug logging for sender investigation
-			fmt.Printf("🔍 DEBUG - Full sender: %s\n", v.Info.Sender.String())
-			fmt.Printf("🔍 DEBUG - User: %s, Server: %s\n", v.Info.Sender.User, v.Info.Sender.Server)
-			fmt.Printf("🔍 DEBUG - IsGroup: %v, IsFromMe: %v\n", v.Info.IsGroup, v.Info.IsFromMe)
-
 			senderNumber := v.Info.Sender.User
 
 			// If message from linked device (@lid), resolve to real phone number

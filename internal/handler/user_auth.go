@@ -81,11 +81,6 @@ func Register(c echo.Context) error {
 		return ErrorResponse(c, http.StatusInternalServerError, "Failed to generate refresh token", "TOKEN_GENERATION_FAILED", err.Error())
 	}
 
-	// Log registration
-	log.Printf("🔍 DEBUG: Starting audit log for user registration")
-	log.Printf("🔍 DEBUG: User ID: %d, Username: %s", user.ID, user.Username)
-	log.Printf("🔍 DEBUG: IP: %s, UserAgent: %s", ipAddress, userAgent)
-
 	auditLog := &model.AuditLog{
 		UserID:       sql.NullInt64{Int64: user.ID, Valid: true},
 		Action:       "user.register",
@@ -95,7 +90,6 @@ func Register(c echo.Context) error {
 		UserAgent:    sql.NullString{String: userAgent, Valid: true},
 	}
 
-	log.Printf("🔍 DEBUG: Calling model.LogAction...")
 	err = model.LogAction(auditLog)
 	if err != nil {
 		// Log error tapi jangan fail request
@@ -382,7 +376,6 @@ func ChangePassword(c echo.Context) error {
 	}
 
 	// Revoke all existing refresh tokens for security
-	log.Printf("🔍 DEBUG: Revoking all sessions for user ID: %d", user.ID)
 	err = service.RevokeAllUserSessions(user.ID)
 	if err != nil {
 		log.Printf("❌ ERROR: Failed to revoke sessions: %v", err)

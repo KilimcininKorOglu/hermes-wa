@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"errors"
-	"log"
 	"time"
 
 	"hermeswa/database"
@@ -133,15 +132,8 @@ func RevokeAllUserTokens(userID int64) error {
 
 	query := `UPDATE refresh_tokens SET revoked = true WHERE user_id = $1 AND revoked = false`
 
-	result, err := db.Exec(query, userID)
-	if err != nil {
-		return err
-	}
-
-	rowsAffected, _ := result.RowsAffected()
-	log.Printf("🔍 DEBUG [refresh_token.go]: Revoked %d tokens for user ID %d", rowsAffected, userID)
-
-	return nil
+	_, err := db.Exec(query, userID)
+	return err
 }
 
 // CleanupExpiredTokens removes expired tokens from the database
