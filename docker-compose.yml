@@ -68,6 +68,9 @@ services:
   web:
     image: node:22-alpine
     working_dir: /app/web
+    environment:
+      VITE_API_URL: http://api:2121
+      VITE_WS_URL: ws://api:2121
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     volumes:
       - ./web:/app/web
