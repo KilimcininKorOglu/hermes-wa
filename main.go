@@ -160,7 +160,7 @@ func main() {
 	// CORS allowed origins
 	originsEnv := os.Getenv("CORS_ALLOW_ORIGINS")
 	if originsEnv == "" {
-		log.Println("CORS_ALLOW_ORIGINS is not set")
+		log.Fatal("CORS_ALLOW_ORIGINS must be set (comma-separated origins, e.g. http://localhost:5173)")
 	}
 	allowOrigins := strings.Split(originsEnv, ",")
 	for i, o := range allowOrigins {
