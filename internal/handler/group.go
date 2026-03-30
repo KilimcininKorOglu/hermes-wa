@@ -5,10 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math/rand"
-	"os"
-	"strconv"
-	"time"
 
 	"hermeswa/internal/helper"
 	"hermeswa/internal/model"
@@ -108,31 +104,9 @@ func SendGroupMessage(c echo.Context) error {
 		return ErrorResponse(c, 400, "Not a group JID", "NOT_GROUP_JID", "Group JID must end with @g.us")
 	}
 
-	//env delay
-	minDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MIN")
-	maxDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MAX")
-
-	if minDelayStr != "" && maxDelayStr != "" {
-		min, _ := strconv.Atoi(minDelayStr)
-		max, _ := strconv.Atoi(maxDelayStr)
-
-		if max >= min && min > 0 {
-			// Generate random delay
-			rangeVal := max - min + 1
-			if rangeVal > 0 {
-				delaySeconds := rand.Intn(rangeVal) + min
-
-				// Send Typing status
-				_ = session.Client.SendChatPresence(context.Background(), groupJID, types.ChatPresenceComposing, types.ChatPresenceMediaText)
-
-				// Wait
-				time.Sleep(time.Duration(delaySeconds) * time.Second)
-			}
-		}
-	}
-
-	// (Optional) Send "Paused"
-	// _ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresencePaused, types.ChatPresenceMediaText)
+	// Typing delay simulation
+	messageLength := len(req.Message)
+	helper.ApplyTypingDelay(session.Client, groupJID, messageLength)
 
 	// Create message
 	msg := &waE2E.Message{
@@ -232,31 +206,9 @@ func SendGroupMedia(c echo.Context) error {
 		return ErrorResponse(c, 500, "Failed to upload media", "UPLOAD_FAILED", err.Error())
 	}
 
-	//env delay
-	minDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MIN")
-	maxDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MAX")
-
-	if minDelayStr != "" && maxDelayStr != "" {
-		min, _ := strconv.Atoi(minDelayStr)
-		max, _ := strconv.Atoi(maxDelayStr)
-
-		if max >= min && min > 0 {
-			// Generate random delay
-			rangeVal := max - min + 1
-			if rangeVal > 0 {
-				delaySeconds := rand.Intn(rangeVal) + min
-
-				// Send Typing status
-				_ = session.Client.SendChatPresence(context.Background(), groupJID, types.ChatPresenceComposing, types.ChatPresenceMediaText)
-
-				// Wait
-				time.Sleep(time.Duration(delaySeconds) * time.Second)
-			}
-		}
-	}
-
-	// (Optional) Send "Paused"
-	// _ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresencePaused, types.ChatPresenceMediaText)
+	// Typing delay simulation
+	messageLength := len(caption)
+	helper.ApplyTypingDelay(session.Client, groupJID, messageLength)
 
 	msg := helper.CreateMediaMessage(uploaded, caption, file.Filename, mediaType)
 
@@ -353,31 +305,9 @@ func SendGroupMediaURL(c echo.Context) error {
 		return ErrorResponse(c, 500, "Failed to upload media", "UPLOAD_FAILED", err.Error())
 	}
 
-	//env delay
-	minDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MIN")
-	maxDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MAX")
-
-	if minDelayStr != "" && maxDelayStr != "" {
-		min, _ := strconv.Atoi(minDelayStr)
-		max, _ := strconv.Atoi(maxDelayStr)
-
-		if max >= min && min > 0 {
-			// Generate random delay
-			rangeVal := max - min + 1
-			if rangeVal > 0 {
-				delaySeconds := rand.Intn(rangeVal) + min
-
-				// Send Typing status
-				_ = session.Client.SendChatPresence(context.Background(), groupJID, types.ChatPresenceComposing, types.ChatPresenceMediaText)
-
-				// Wait
-				time.Sleep(time.Duration(delaySeconds) * time.Second)
-			}
-		}
-	}
-
-	// (Optional) Send "Paused"
-	// _ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresencePaused, types.ChatPresenceMediaText)
+	// Typing delay simulation
+	messageLength := len(req.Caption)
+	helper.ApplyTypingDelay(session.Client, groupJID, messageLength)
 
 	msg := helper.CreateMediaMessage(uploaded, req.Caption, filename, mediaType)
 
@@ -514,31 +444,9 @@ func SendGroupMessageByNumber(c echo.Context) error {
 		return ErrorResponse(c, 400, "Not a group JID", "NOT_GROUP_JID", "Group JID must end with @g.us")
 	}
 
-	//env delay
-	minDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MIN")
-	maxDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MAX")
-
-	if minDelayStr != "" && maxDelayStr != "" {
-		min, _ := strconv.Atoi(minDelayStr)
-		max, _ := strconv.Atoi(maxDelayStr)
-
-		if max >= min && min > 0 {
-			// Generate random delay
-			rangeVal := max - min + 1
-			if rangeVal > 0 {
-				delaySeconds := rand.Intn(rangeVal) + min
-
-				// Send Typing status
-				_ = session.Client.SendChatPresence(context.Background(), groupJID, types.ChatPresenceComposing, types.ChatPresenceMediaText)
-
-				// Wait
-				time.Sleep(time.Duration(delaySeconds) * time.Second)
-			}
-		}
-	}
-
-	// (Optional) Send "Paused"
-	// _ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresencePaused, types.ChatPresenceMediaText)
+	// Typing delay simulation
+	messageLength := len(req.Message)
+	helper.ApplyTypingDelay(session.Client, groupJID, messageLength)
 
 	// Create message
 	msg := &waE2E.Message{
@@ -657,31 +565,9 @@ func SendGroupMediaByNumber(c echo.Context) error {
 		return ErrorResponse(c, 500, "Failed to upload media", "UPLOAD_FAILED", err.Error())
 	}
 
-	//env delay
-	minDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MIN")
-	maxDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MAX")
-
-	if minDelayStr != "" && maxDelayStr != "" {
-		min, _ := strconv.Atoi(minDelayStr)
-		max, _ := strconv.Atoi(maxDelayStr)
-
-		if max >= min && min > 0 {
-			// Generate random delay
-			rangeVal := max - min + 1
-			if rangeVal > 0 {
-				delaySeconds := rand.Intn(rangeVal) + min
-
-				// Send Typing status
-				_ = session.Client.SendChatPresence(context.Background(), groupJID, types.ChatPresenceComposing, types.ChatPresenceMediaText)
-
-				// Wait
-				time.Sleep(time.Duration(delaySeconds) * time.Second)
-			}
-		}
-	}
-
-	// (Optional) Send "Paused"
-	// _ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresencePaused, types.ChatPresenceMediaText)
+	// Typing delay simulation
+	messageLength := len(caption)
+	helper.ApplyTypingDelay(session.Client, groupJID, messageLength)
 
 	msg := helper.CreateMediaMessage(uploaded, caption, file.Filename, mediaType)
 
@@ -797,31 +683,9 @@ func SendGroupMediaURLByNumber(c echo.Context) error {
 		return ErrorResponse(c, 500, "Failed to upload media", "UPLOAD_FAILED", err.Error())
 	}
 
-	//env delay
-	minDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MIN")
-	maxDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MAX")
-
-	if minDelayStr != "" && maxDelayStr != "" {
-		min, _ := strconv.Atoi(minDelayStr)
-		max, _ := strconv.Atoi(maxDelayStr)
-
-		if max >= min && min > 0 {
-			// Generate random delay
-			rangeVal := max - min + 1
-			if rangeVal > 0 {
-				delaySeconds := rand.Intn(rangeVal) + min
-
-				// Send Typing status
-				_ = session.Client.SendChatPresence(context.Background(), groupJID, types.ChatPresenceComposing, types.ChatPresenceMediaText)
-
-				// Wait
-				time.Sleep(time.Duration(delaySeconds) * time.Second)
-			}
-		}
-	}
-
-	// (Optional) Send "Paused"
-	// _ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresencePaused, types.ChatPresenceMediaText)
+	// Typing delay simulation
+	messageLength := len(req.Caption)
+	helper.ApplyTypingDelay(session.Client, groupJID, messageLength)
 
 	msg := helper.CreateMediaMessage(uploaded, req.Caption, filename, mediaType)
 

@@ -3,10 +3,6 @@ package handler
 import (
 	"context"
 	"errors"
-	"math/rand"
-	"os"
-	"strconv"
-	"time"
 
 	"hermeswa/internal/helper"
 	"hermeswa/internal/service"
@@ -15,7 +11,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"go.mau.fi/whatsmeow/proto/waE2E"
-	"go.mau.fi/whatsmeow/types"
 )
 
 // Request body for sending a message
@@ -71,57 +66,9 @@ func SendMessage(c echo.Context) error {
 		}
 	}
 
-	// More natural typing simulation
+	// Typing delay simulation
 	messageLength := len(req.Message)
-	baseDelay := 2      // minimum seconds
-	typingSpeed := 0.15 // seconds per character (typing speed simulation)
-	calculatedDelay := baseDelay + int(float64(messageLength)*typingSpeed)
-
-	// Add random variation ±20%
-	variationRange := int(float64(calculatedDelay) * 0.4)
-	if variationRange < 1 {
-		variationRange = 1 // Ensure minimum 1 to avoid panic
-	}
-	variation := rand.Intn(variationRange) - int(float64(calculatedDelay)*0.2)
-	finalDelay := calculatedDelay + variation
-
-	// Limit delay (min 3 sec, max 30 sec)
-	if finalDelay > 30 {
-		finalDelay = 30
-	}
-	if finalDelay < 3 {
-		finalDelay = 3
-	}
-
-	// Override with env variable if present
-	minDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MIN")
-	maxDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MAX")
-	if minDelayStr != "" && maxDelayStr != "" {
-		min, _ := strconv.Atoi(minDelayStr)
-		max, _ := strconv.Atoi(maxDelayStr)
-		if max >= min && min > 0 {
-			rangeVal := max - min + 1
-			if rangeVal > 0 {
-				finalDelay = rand.Intn(rangeVal) + min
-			}
-		}
-	}
-
-	// Send Typing status
-	_ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresenceComposing, types.ChatPresenceMediaText)
-
-	// Wait partial time (70%)
-	time.Sleep(time.Duration(finalDelay*70/100) * time.Second)
-
-	// Brief pause (30% chance for messages > 50 chars)
-	if messageLength > 50 && rand.Intn(100) < 30 {
-		_ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresencePaused, types.ChatPresenceMediaText)
-		time.Sleep(time.Duration(rand.Intn(2)+1) * time.Second)
-		_ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresenceComposing, types.ChatPresenceMediaText)
-	}
-
-	// Wait remaining time (30%)
-	time.Sleep(time.Duration(finalDelay*30/100) * time.Second)
+	helper.ApplyTypingDelay(session.Client, recipient, messageLength)
 
 	msg := &waE2E.Message{
 		Conversation: &req.Message,
@@ -207,57 +154,9 @@ func SendMessageByNumber(c echo.Context) error {
 		}
 	}
 
-	// More natural typing simulation
+	// Typing delay simulation
 	messageLength := len(req.Message)
-	baseDelay := 2      // minimum seconds
-	typingSpeed := 0.15 // seconds per character (typing speed simulation)
-	calculatedDelay := baseDelay + int(float64(messageLength)*typingSpeed)
-
-	// Add random variation ±20%
-	variationRange := int(float64(calculatedDelay) * 0.4)
-	if variationRange < 1 {
-		variationRange = 1 // Ensure minimum 1 to avoid panic
-	}
-	variation := rand.Intn(variationRange) - int(float64(calculatedDelay)*0.2)
-	finalDelay := calculatedDelay + variation
-
-	// Limit delay (min 3 sec, max 30 sec)
-	if finalDelay > 30 {
-		finalDelay = 30
-	}
-	if finalDelay < 3 {
-		finalDelay = 3
-	}
-
-	// Override with env variable if present
-	minDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MIN")
-	maxDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MAX")
-	if minDelayStr != "" && maxDelayStr != "" {
-		min, _ := strconv.Atoi(minDelayStr)
-		max, _ := strconv.Atoi(maxDelayStr)
-		if max >= min && min > 0 {
-			rangeVal := max - min + 1
-			if rangeVal > 0 {
-				finalDelay = rand.Intn(rangeVal) + min
-			}
-		}
-	}
-
-	// Send Typing status
-	_ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresenceComposing, types.ChatPresenceMediaText)
-
-	// Wait partial time (70%)
-	time.Sleep(time.Duration(finalDelay*70/100) * time.Second)
-
-	// Brief pause (30% chance for messages > 50 chars)
-	if messageLength > 50 && rand.Intn(100) < 30 {
-		_ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresencePaused, types.ChatPresenceMediaText)
-		time.Sleep(time.Duration(rand.Intn(2)+1) * time.Second)
-		_ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresenceComposing, types.ChatPresenceMediaText)
-	}
-
-	// Wait remaining time (30%)
-	time.Sleep(time.Duration(finalDelay*30/100) * time.Second)
+	helper.ApplyTypingDelay(session.Client, recipient, messageLength)
 
 	// 5) Send message
 	msg := &waE2E.Message{

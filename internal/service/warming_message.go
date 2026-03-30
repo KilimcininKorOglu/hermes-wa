@@ -3,10 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"math/rand"
-	"os"
-	"strconv"
-	"time"
 
 	"hermeswa/internal/helper"
 	"hermeswa/internal/model"
@@ -92,57 +88,9 @@ func sendWarmingMessageInternal(senderSession *model.Session, recipientJID types
 		}
 	}
 
-	// Typing simulation (same as SendMessage handler)
+	// Typing delay simulation
 	messageLength := len(message)
-	baseDelay := 2
-	typingSpeed := 0.15
-	calculatedDelay := baseDelay + int(float64(messageLength)*typingSpeed)
-
-	// Add random variation ±20%
-	variationRange := int(float64(calculatedDelay) * 0.4)
-	if variationRange < 1 {
-		variationRange = 1 // Ensure minimum 1 to avoid panic
-	}
-	variation := rand.Intn(variationRange) - int(float64(calculatedDelay)*0.2)
-	finalDelay := calculatedDelay + variation
-
-	// Limit delay (min 3 sec, max 30 sec)
-	if finalDelay > 30 {
-		finalDelay = 30
-	}
-	if finalDelay < 3 {
-		finalDelay = 3
-	}
-
-	// Override with env variable if exists
-	minDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MIN")
-	maxDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MAX")
-	if minDelayStr != "" && maxDelayStr != "" {
-		min, _ := strconv.Atoi(minDelayStr)
-		max, _ := strconv.Atoi(maxDelayStr)
-		if max >= min && min > 0 {
-			rangeVal := max - min + 1
-			if rangeVal > 0 {
-				finalDelay = rand.Intn(rangeVal) + min
-			}
-		}
-	}
-
-	// Send typing status
-	_ = senderSession.Client.SendChatPresence(ctx, recipientJID, types.ChatPresenceComposing, types.ChatPresenceMediaText)
-
-	// Wait 70% of time
-	time.Sleep(time.Duration(finalDelay*70/100) * time.Second)
-
-	// Pause occasionally (30% chance for messages > 50 chars)
-	if messageLength > 50 && rand.Intn(100) < 30 {
-		_ = senderSession.Client.SendChatPresence(ctx, recipientJID, types.ChatPresencePaused, types.ChatPresenceMediaText)
-		time.Sleep(time.Duration(rand.Intn(2)+1) * time.Second)
-		_ = senderSession.Client.SendChatPresence(ctx, recipientJID, types.ChatPresenceComposing, types.ChatPresenceMediaText)
-	}
-
-	// Wait remaining 30% of time
-	time.Sleep(time.Duration(finalDelay*30/100) * time.Second)
+	helper.ApplyTypingDelay(senderSession.Client, recipientJID, messageLength)
 
 	// Send message
 	msg := &waE2E.Message{

@@ -5,10 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math/rand"
-	"os"
-	"strconv"
-	"time"
 
 	"hermeswa/internal/helper"
 	"hermeswa/internal/model"
@@ -16,7 +12,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"go.mau.fi/whatsmeow"
-	"go.mau.fi/whatsmeow/types"
 )
 
 // Request body for sending media from URL
@@ -125,31 +120,9 @@ func SendMediaFile(c echo.Context) error {
 			fmt.Sprintf("Type: %s, Size: %d bytes, Error: %v", mediaType, len(fileData), err))
 	}
 
-	//env delay
-	minDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MIN")
-	maxDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MAX")
-
-	if minDelayStr != "" && maxDelayStr != "" {
-		min, _ := strconv.Atoi(minDelayStr)
-		max, _ := strconv.Atoi(maxDelayStr)
-
-		if max >= min && min > 0 {
-			// Generate random delay
-			rangeVal := max - min + 1
-			if rangeVal > 0 {
-				delaySeconds := rand.Intn(rangeVal) + min
-
-				// Send Typing status
-				_ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresenceComposing, types.ChatPresenceMediaText)
-
-				// Wait
-				time.Sleep(time.Duration(delaySeconds) * time.Second)
-			}
-		}
-	}
-
-	// (Optional) Send "Paused"
-	// _ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresencePaused, types.ChatPresenceMediaText)
+	// Typing delay simulation
+	messageLength := len(caption)
+	helper.ApplyTypingDelay(session.Client, recipient, messageLength)
 
 	// 12. CREATE MESSAGE
 	msg := helper.CreateMediaMessage(uploaded, caption, file.Filename, mediaType)
@@ -268,31 +241,9 @@ func SendMediaURL(c echo.Context) error {
 			fmt.Sprintf("File: %s, Size: %d bytes, Type: %s, Error: %v", filename, len(fileData), mediaType, err))
 	}
 
-	//env delay
-	minDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MIN")
-	maxDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MAX")
-
-	if minDelayStr != "" && maxDelayStr != "" {
-		min, _ := strconv.Atoi(minDelayStr)
-		max, _ := strconv.Atoi(maxDelayStr)
-
-		if max >= min && min > 0 {
-			// Generate random delay
-			rangeVal := max - min + 1
-			if rangeVal > 0 {
-				delaySeconds := rand.Intn(rangeVal) + min
-
-				// Send Typing status
-				_ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresenceComposing, types.ChatPresenceMediaText)
-
-				// Wait
-				time.Sleep(time.Duration(delaySeconds) * time.Second)
-			}
-		}
-	}
-
-	// (Optional) Send "Paused"
-	// _ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresencePaused, types.ChatPresenceMediaText)
+	// Typing delay simulation
+	messageLength := len(req.Caption)
+	helper.ApplyTypingDelay(session.Client, recipient, messageLength)
 
 	// 12. CREATE MESSAGE
 	msg := helper.CreateMediaMessage(uploaded, req.Caption, filename, mediaType)
@@ -415,31 +366,9 @@ func SendMediaURLByNumber(c echo.Context) error {
 		return ErrorResponse(c, 500, "Failed to upload media to WhatsApp", "UPLOAD_FAILED", fmt.Sprintf("File: %s, Size: %d bytes, Type: %s, Error: %v", filename, len(fileData), mediaType, err))
 	}
 
-	//env delay
-	minDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MIN")
-	maxDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MAX")
-
-	if minDelayStr != "" && maxDelayStr != "" {
-		min, _ := strconv.Atoi(minDelayStr)
-		max, _ := strconv.Atoi(maxDelayStr)
-
-		if max >= min && min > 0 {
-			// Generate random delay
-			rangeVal := max - min + 1
-			if rangeVal > 0 {
-				delaySeconds := rand.Intn(rangeVal) + min
-
-				// Send Typing status
-				_ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresenceComposing, types.ChatPresenceMediaText)
-
-				// Wait
-				time.Sleep(time.Duration(delaySeconds) * time.Second)
-			}
-		}
-	}
-
-	// (Optional) Send "Paused"
-	// _ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresencePaused, types.ChatPresenceMediaText)
+	// Typing delay simulation
+	messageLength := len(req.Caption)
+	helper.ApplyTypingDelay(session.Client, recipient, messageLength)
 
 	msg := helper.CreateMediaMessage(uploaded, req.Caption, filename, mediaType)
 
@@ -573,31 +502,9 @@ func SendMediaFileByNumber(c echo.Context) error {
 		return ErrorResponse(c, 500, "Failed to upload media", "UPLOAD_FAILED", fmt.Sprintf("Type: %s, Size: %d bytes, Error: %v", mediaType, len(fileData), err))
 	}
 
-	//env delay
-	minDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MIN")
-	maxDelayStr := os.Getenv("HERMESWA_TYPING_DELAY_MAX")
-
-	if minDelayStr != "" && maxDelayStr != "" {
-		min, _ := strconv.Atoi(minDelayStr)
-		max, _ := strconv.Atoi(maxDelayStr)
-
-		if max >= min && min > 0 {
-			// Generate random delay
-			rangeVal := max - min + 1
-			if rangeVal > 0 {
-				delaySeconds := rand.Intn(rangeVal) + min
-
-				// Send Typing status
-				_ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresenceComposing, types.ChatPresenceMediaText)
-
-				// Wait
-				time.Sleep(time.Duration(delaySeconds) * time.Second)
-			}
-		}
-	}
-
-	// (Optional) Send "Paused"
-	// _ = session.Client.SendChatPresence(context.Background(), recipient, types.ChatPresencePaused, types.ChatPresenceMediaText)
+	// Typing delay simulation
+	messageLength := len(caption)
+	helper.ApplyTypingDelay(session.Client, recipient, messageLength)
 
 	// 13. CREATE MESSAGE
 	msg := helper.CreateMediaMessage(uploaded, caption, file.Filename, mediaType)

@@ -71,6 +71,14 @@ func main() {
 		config.WarmingAutoReplyCooldown = 60 // default 60 seconds
 	}
 
+	// Typing Delay Configuration (read once at startup)
+	if v, err := strconv.Atoi(os.Getenv("HERMESWA_TYPING_DELAY_MIN")); err == nil && v > 0 {
+		config.TypingDelayMin = v
+	}
+	if v, err := strconv.Atoi(os.Getenv("HERMESWA_TYPING_DELAY_MAX")); err == nil && v > 0 {
+		config.TypingDelayMax = v
+	}
+
 	// AI Configuration
 	config.AIEnabled = os.Getenv("AI_ENABLED") == "true"
 	config.AIDefaultProvider = os.Getenv("AI_DEFAULT_PROVIDER")

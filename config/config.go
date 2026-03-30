@@ -6,6 +6,10 @@ var WarmingWorkerEnabled bool
 var WarmingAutoReplyEnabled bool
 var WarmingAutoReplyCooldown int // seconds
 
+// Typing Delay Configuration (read once at startup)
+var TypingDelayMin int // 0 = disabled (use calculated delay)
+var TypingDelayMax int
+
 // AI Configuration
 var AIEnabled bool
 var AIDefaultProvider string
