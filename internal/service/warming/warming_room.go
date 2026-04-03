@@ -23,7 +23,7 @@ var (
 )
 
 // CreateWarmingRoomService creates new room with validation
-func CreateWarmingRoomService(req *warmingModel.CreateWarmingRoomRequest, userID int64) (*warmingModel.WarmingRoom, error) {
+func CreateWarmingRoomService(req *warmingModel.CreateWarmingRoomRequest, userID int64, isAdmin bool) (*warmingModel.WarmingRoom, error) {
 	// Validate name
 	if strings.TrimSpace(req.Name) == "" {
 		return nil, ErrRoomNameRequired
@@ -65,6 +65,13 @@ func CreateWarmingRoomService(req *warmingModel.CreateWarmingRoomRequest, userID
 			return nil, fmt.Errorf("sender instance '%s' is not online (status: %s)", req.SenderInstanceID, senderInstance.Status)
 		}
 
+		// Verify user has permission to use sender instance
+		if !isAdmin {
+			if _, err := model.CheckUserInstancePermission(userID, req.SenderInstanceID); err != nil {
+				return nil, fmt.Errorf("no permission to use sender instance: %s", req.SenderInstanceID)
+			}
+		}
+
 		// Validate receiver instance exists, online, and available
 		receiverInstance, err := model.GetInstanceByInstanceID(req.ReceiverInstanceID)
 		if err != nil {
@@ -72,6 +79,13 @@ func CreateWarmingRoomService(req *warmingModel.CreateWarmingRoomRequest, userID
 		}
 		if receiverInstance.Status != "online" {
 			return nil, fmt.Errorf("receiver instance '%s' is not online (status: %s)", req.ReceiverInstanceID, receiverInstance.Status)
+		}
+
+		// Verify user has permission to use receiver instance
+		if !isAdmin {
+			if _, err := model.CheckUserInstancePermission(userID, req.ReceiverInstanceID); err != nil {
+				return nil, fmt.Errorf("no permission to use receiver instance: %s", req.ReceiverInstanceID)
+			}
 		}
 
 	}
@@ -95,6 +109,13 @@ func CreateWarmingRoomService(req *warmingModel.CreateWarmingRoomRequest, userID
 		}
 		if senderInstance.Status != "online" {
 			return nil, fmt.Errorf("sender instance '%s' is not online (status: %s)", req.SenderInstanceID, senderInstance.Status)
+		}
+
+		// Verify user has permission to use sender instance
+		if !isAdmin {
+			if _, err := model.CheckUserInstancePermission(userID, req.SenderInstanceID); err != nil {
+				return nil, fmt.Errorf("no permission to use sender instance: %s", req.SenderInstanceID)
+			}
 		}
 
 		// Set default reply delays if not provided

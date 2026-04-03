@@ -26,7 +26,10 @@ func CreateWarmingRoom(c echo.Context) error {
 		return handler.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", "UNAUTHORIZED", "")
 	}
 
-	room, err := warmingService.CreateWarmingRoomService(&req, userID)
+	role, _ := c.Get("role").(string)
+	isAdmin := role == "admin"
+
+	room, err := warmingService.CreateWarmingRoomService(&req, userID, isAdmin)
 	if err != nil {
 		if errors.Is(err, warmingService.ErrRoomNameRequired) {
 			return handler.ErrorResponse(c, http.StatusBadRequest, err.Error(), "NAME_REQUIRED", "")
