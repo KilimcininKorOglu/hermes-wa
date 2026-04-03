@@ -13,6 +13,8 @@ REST API for WhatsApp Web automation, multi-instance management, and real-time m
 - [Getting Started](#getting-started)
 - [Authentication](#authentication)
 - [Docker Development](#docker-development)
+  - [Local Development](#local-development)
+  - [Production (Coolify)](#production-coolify)
 - [Web UI](#web-ui)
 - [Environment Variables](#environment-variables)
 - [Deployment](#deployment)
@@ -194,26 +196,10 @@ HERMESWA uses JWT-based authentication with access/refresh token pairs. API keys
 
 ### JWT Flow
 
-1. **Register** or **Login** to receive an access token + refresh token
+1. **Login** to receive an access token + refresh token (user accounts are created by admins via `POST /api/admin/users`)
 2. Include the access token in all API requests: `Authorization: Bearer {access_token}`
 3. When the access token expires, call `/refresh` with the refresh token to get a new pair
 4. Refresh tokens are rotated on each use (old token is consumed, new one issued)
-
-### Register
-
-```http
-POST /register
-Content-Type: application/json
-```
-
-```json
-{
-  "username": "johndoe",
-  "email": "john@example.com",
-  "password": "securePassword123",
-  "full_name": "John Doe"
-}
-```
 
 ### Login
 
@@ -229,7 +215,7 @@ Content-Type: application/json
 }
 ```
 
-**Response (both register and login):**
+**Response:**
 
 ```json
 {
@@ -267,17 +253,19 @@ Returns a new access token and a new refresh token. The old refresh token is inv
 
 ## Docker Development
 
-A full Docker Compose development environment is included:
+Two separate Docker Compose files are provided:
+
+### Local Development
 
 ```bash
 # Start all services (PostgreSQL + API + Worker + Web)
-docker compose up -d
+docker compose -f docker-compose.local.yml up -d
 
 # View logs
-docker compose logs -f
+docker compose -f docker-compose.local.yml logs -f
 
 # Stop
-docker compose down
+docker compose -f docker-compose.local.yml down
 ```
 
 | Service    | Port | Description                |
@@ -290,6 +278,22 @@ docker compose down
 All volumes bind-mount to `docker-data/` directory. The API server uses `air` for hot-reload during development.
 
 An admin user (`admin` / `admin123`) is automatically created on first startup if no admin exists in the database.
+
+### Production (Coolify)
+
+```bash
+# docker-compose.yml is designed for Coolify deployment
+# Services: db-init (one-shot) + api + worker
+# PostgreSQL is managed separately in Coolify
+# Environment variables are set via Coolify UI
+# Traefik proxy handles domain routing and SSL
+```
+
+| Service   | Description                                           |
+|:----------|:------------------------------------------------------|
+| `db-init` | One-shot container that creates required databases    |
+| `api`     | Production API server (built from Dockerfile)         |
+| `worker`  | Blast outbox worker (compiled binary, same image)     |
 
 ---
 
@@ -420,6 +424,13 @@ Configure these in your `.env` file.
 | `OUTBOX_API_PASS`    | Password for worker API authentication | --                      | `worker_pass`             |
 
 The worker runs as a standalone binary and communicates with the main API to send messages. It reads configurations from `APP_DATABASE_URL` and processes messages from `OUTBOX_DATABASE_URL` (falls back to `APP_DATABASE_URL` if not set).
+
+### Resource Limits
+
+| Variable                    | Description                                   | Default | Example |
+|:----------------------------|:----------------------------------------------|:--------|:--------|
+| `MAX_INSTANCES_PER_USER`    | Max WhatsApp instances per non-admin user     | `10`    | `20`    |
+| `OUTBOX_MAX_DAILY_PER_USER` | Max outbox messages per user per day          | `10000` | `50000` |
 
 ---
 
@@ -931,6 +942,7 @@ Admin-only endpoints (requires JWT with `admin` role):
 | Method | Endpoint                                     | Description                    |
 |:-------|:---------------------------------------------|:-------------------------------|
 | GET    | `/api/admin/stats`                           | System-wide statistics         |
+| POST   | `/api/admin/users`                           | Create new user (admin only)   |
 | GET    | `/api/admin/users`                           | List all users (paginated)     |
 | GET    | `/api/admin/users/:id`                       | Get user details               |
 | PATCH  | `/api/admin/users/:id`                       | Update user (role, active)     |
@@ -938,6 +950,8 @@ Admin-only endpoints (requires JWT with `admin` role):
 | GET    | `/api/admin/users/:id/instances`             | List user's assigned instances |
 | POST   | `/api/admin/users/:id/instances`             | Assign instance to user        |
 | DELETE | `/api/admin/users/:id/instances/:instanceId` | Revoke instance from user      |
+
+Admin self-deletion is blocked. The last remaining admin cannot be deleted.
 
 ## Contacts API
 
