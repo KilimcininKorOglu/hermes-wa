@@ -445,3 +445,14 @@ func (u *User) ToResponse() UserResponse {
 
 	return resp
 }
+
+// CountAdminUsers returns the number of active admin users
+func CountAdminUsers() (int, error) {
+	db := database.AppDB
+
+	query := `SELECT COUNT(*) FROM users WHERE role = 'admin' AND is_active = true`
+
+	var count int
+	err := db.QueryRow(query).Scan(&count)
+	return count, err
+}
