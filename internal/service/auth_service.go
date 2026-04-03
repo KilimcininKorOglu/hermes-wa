@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"time"
@@ -25,6 +26,9 @@ var (
 
 // InitAuthConfig initializes authentication configuration from environment variables
 func InitAuthConfig(secret string) {
+	if secret == "" || len(secret) < 32 {
+		log.Fatal("JWT_SECRET must be set and at least 32 characters long")
+	}
 	jwtSecret = []byte(secret)
 
 	// Access token expiry (default: 1 hour)

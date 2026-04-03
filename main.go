@@ -127,8 +127,8 @@ func main() {
 
 	//jwt secret for new auth system
 	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
-		log.Println("JWT_SECRET is not set")
+	if jwtSecret == "" || len(jwtSecret) < 32 {
+		log.Fatal("JWT_SECRET must be set and at least 32 characters long")
 	}
 
 	// Initialize authentication service (for new user management)
