@@ -11,10 +11,19 @@ REST API for WhatsApp Web automation, multi-instance management, and real-time m
 - [Key Features](#key-features)
 - [Tech Stack](#tech-stack)
 - [Getting Started](#getting-started)
+- [Authentication](#authentication)
 - [Docker Development](#docker-development)
 - [Web UI](#web-ui)
 - [Environment Variables](#environment-variables)
 - [Deployment](#deployment)
+- [User Profile API](#user-profile-api)
+- [Instance Management API](#instance-management-api)
+- [Messaging API](#messaging-api)
+- [Group Messaging API](#group-messaging-api)
+- [File Manager API](#file-manager-api)
+- [System Identity API](#system-identity-api)
+- [Warming System API](#warming-system-api)
+- [Worker Config API](#worker-config-api)
 - [Outbox REST API](#outbox-rest-api)
 - [WebSocket Events](#websocket-events)
 - [Webhook Integration](#webhook-integration)
@@ -123,7 +132,7 @@ REST API for WhatsApp Web automation, multi-instance management, and real-time m
 
 | Component | Technology                                                |
 |:----------|:----------------------------------------------------------|
-| Language  | Go 1.24+                                                  |
+| Language  | Go 1.24.3+                                                |
 | Framework | [Echo v4](https://echo.labstack.com/)                     |
 | WhatsApp  | [whatsmeow](https://github.com/tulir/whatsmeow)           |
 | Database  | PostgreSQL 12+                                            |
@@ -138,7 +147,7 @@ REST API for WhatsApp Web automation, multi-instance management, and real-time m
 
 ### Prerequisites
 
-- Go 1.24 or later
+- Go 1.24.3 or later
 - Node.js 22+ and npm (for frontend)
 - PostgreSQL 12 or later
 - Make (build tool)
@@ -176,6 +185,83 @@ cp .env.example .env
 # Start worker (separate terminal)
 ./bin/worker
 ```
+
+---
+
+## Authentication
+
+HERMESWA uses JWT-based authentication with access/refresh token pairs. API keys are available for external integrations.
+
+### JWT Flow
+
+1. **Register** or **Login** to receive an access token + refresh token
+2. Include the access token in all API requests: `Authorization: Bearer {access_token}`
+3. When the access token expires, call `/refresh` with the refresh token to get a new pair
+4. Refresh tokens are rotated on each use (old token is consumed, new one issued)
+
+### Register
+
+```http
+POST /register
+Content-Type: application/json
+```
+
+```json
+{
+  "username": "johndoe",
+  "email": "john@example.com",
+  "password": "securePassword123",
+  "full_name": "John Doe"
+}
+```
+
+### Login
+
+```http
+POST /login
+Content-Type: application/json
+```
+
+```json
+{
+  "username": "johndoe",
+  "password": "securePassword123"
+}
+```
+
+**Response (both register and login):**
+
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "access_token": "eyJhbGc...",
+    "refresh_token": "eyJhbGc...",
+    "user": {
+      "id": 1,
+      "username": "johndoe",
+      "role": "user",
+      "is_active": true
+    }
+  }
+}
+```
+
+### Refresh Token
+
+```http
+POST /refresh
+Content-Type: application/json
+```
+
+```json
+{
+  "refresh_token": "eyJhbGc..."
+}
+```
+
+Returns a new access token and a new refresh token. The old refresh token is invalidated.
 
 ---
 
@@ -264,6 +350,26 @@ Configure these in your `.env` file.
 | `HERMESWA_TYPING_DELAY_MIN`              | Minimum typing simulation delay (seconds)   | `1`     | `2`     |
 | `HERMESWA_TYPING_DELAY_MAX`              | Maximum typing simulation delay (seconds)   | `3`     | `5`     |
 | `ALLOW_9_DIGIT_PHONE_NUMBER`             | Allow 9-digit numbers without validation    | `false` | `true`  |
+
+### JWT Token Configuration
+
+| Variable                      | Description                      | Default | Example |
+|:------------------------------|:---------------------------------|:--------|:--------|
+| `JWT_ACCESS_TOKEN_EXPIRY`     | Access token validity duration   | `1h`    | `2h`    |
+| `JWT_REFRESH_TOKEN_EXPIRY`    | Refresh token validity duration  | `168h`  | `720h`  |
+| `MAX_REFRESH_TOKENS_PER_USER` | Maximum concurrent refresh tokens| `10`    | `5`     |
+
+### Avatar Upload Configuration
+
+| Variable               | Description                      | Default                | Example          |
+|:-----------------------|:---------------------------------|:-----------------------|:-----------------|
+| `UPLOAD_DIR`           | Directory for uploaded files     | `./uploads`            | `/data/uploads`  |
+| `MAX_AVATAR_SIZE_MB`   | Maximum avatar file size (MB)    | `1`                    | `2`              |
+| `MAX_AVATAR_SIZE_KB`   | Maximum avatar size (KB)         | `500`                  | `1024`           |
+| `ALLOWED_AVATAR_TYPES` | Allowed image formats            | `jpg,jpeg,png,webp`   | `jpg,png`        |
+| `AVATAR_OUTPUT_FORMAT` | Output format after processing   | `webp`                 | `png`            |
+| `AVATAR_MAX_DIMENSION` | Maximum dimension in pixels      | `1024`                 | `2048`           |
+| `AVATAR_MIN_DIMENSION` | Minimum dimension in pixels      | `100`                  | `50`             |
 
 ### Rate Limiting
 
@@ -356,6 +462,275 @@ The application automatically updates the database schema on startup:
 - Preserves existing data and custom columns
 
 No manual migration commands are needed.
+
+---
+
+## User Profile API
+
+Authenticated user management endpoints (requires JWT):
+
+| Method | Endpoint           | Description                   |
+|:-------|:-------------------|:------------------------------|
+| GET    | `/api/me`          | Get current user profile      |
+| PUT    | `/api/me`          | Update profile (name, avatar) |
+| PUT    | `/api/me/password`  | Change password               |
+| POST   | `/api/logout`      | Logout (invalidate tokens)    |
+| POST   | `/api/me/avatar`   | Upload avatar image           |
+
+---
+
+## Instance Management API
+
+WhatsApp instance lifecycle endpoints (requires JWT + instance access):
+
+| Method | Endpoint                        | Description                          |
+|:-------|:--------------------------------|:-------------------------------------|
+| POST   | `/api/login`                    | Create new WhatsApp instance         |
+| GET    | `/api/instances`                | List all instances (role-filtered)   |
+| PATCH  | `/api/instances/:instanceId`    | Update instance fields               |
+| DELETE | `/api/instances/:instanceId`    | Delete instance                      |
+| GET    | `/api/qr/:instanceId`          | Get QR code for pairing              |
+| DELETE | `/api/qr-cancel/:instanceId`   | Cancel QR code generation            |
+| GET    | `/api/status/:instanceId`      | Get instance connection status       |
+| POST   | `/api/logout/:instanceId`      | Logout WhatsApp session              |
+| GET    | `/api/info-device/:instanceId` | Get device info (JID, phone, platform)|
+
+### Create Instance
+
+```http
+POST /api/login
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+```
+
+```json
+{
+  "circle": "production"
+}
+```
+
+The `circle` field is required and used for instance grouping. After creation, call `GET /api/qr/:instanceId` to retrieve the QR code for WhatsApp pairing.
+
+### Update Instance
+
+```http
+PATCH /api/instances/:instanceId
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+```
+
+```json
+{
+  "used": true,
+  "description": "Marketing line A",
+  "circle": "marketing"
+}
+```
+
+All fields are optional. At least one must be provided.
+
+---
+
+## Messaging API
+
+Send messages via instance ID or phone number (requires JWT):
+
+### By Instance ID
+
+| Method | Endpoint                              | Description                    |
+|:-------|:--------------------------------------|:-------------------------------|
+| POST   | `/api/send/:instanceId`               | Send text message              |
+| POST   | `/api/send/:instanceId/media`         | Send media file (upload)       |
+| POST   | `/api/send/:instanceId/media-url`     | Send media from URL            |
+| POST   | `/api/check/:instanceId`              | Check if number is on WhatsApp |
+
+### By Phone Number
+
+Routes resolve the phone number to an instance, then check user access:
+
+| Method | Endpoint                                    | Description                    |
+|:-------|:--------------------------------------------|:-------------------------------|
+| POST   | `/api/by-number/:phoneNumber`               | Send text message              |
+| POST   | `/api/by-number/:phoneNumber/media-url`     | Send media from URL            |
+| POST   | `/api/by-number/:phoneNumber/media-file`    | Send media file (upload)       |
+
+### Send Text Message
+
+```http
+POST /api/send/:instanceId
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+```
+
+```json
+{
+  "to": "905xxxxxxxxx",
+  "message": "Hello from HERMESWA!"
+}
+```
+
+### Send Media from URL
+
+```http
+POST /api/send/:instanceId/media-url
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+```
+
+```json
+{
+  "to": "905xxxxxxxxx",
+  "mediaUrl": "https://example.com/image.jpg",
+  "caption": "Check this out",
+  "mediaType": "image"
+}
+```
+
+`mediaType` is optional (auto-detected from URL). Valid values: `image`, `video`, `document`, `audio`.
+
+### Send Media File
+
+```http
+POST /api/send/:instanceId/media
+Authorization: Bearer {jwt_token}
+Content-Type: multipart/form-data
+```
+
+Form fields: `to` (required), `file` (required), `caption` (optional).
+
+### Check Phone Number
+
+```http
+POST /api/check/:instanceId
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+```
+
+```json
+{
+  "phone": "905xxxxxxxxx"
+}
+```
+
+---
+
+## Group Messaging API
+
+Group operations via instance ID or phone number (requires JWT):
+
+### By Instance ID
+
+| Method | Endpoint                                     | Description              |
+|:-------|:---------------------------------------------|:-------------------------|
+| GET    | `/api/groups/:instanceId`                    | List all groups          |
+| POST   | `/api/send-group/:instanceId`                | Send text to group       |
+| POST   | `/api/send-group/:instanceId/media`          | Send media file to group |
+| POST   | `/api/send-group/:instanceId/media-url`      | Send media URL to group  |
+
+### By Phone Number
+
+| Method | Endpoint                                              | Description              |
+|:-------|:------------------------------------------------------|:-------------------------|
+| GET    | `/api/groups/by-number/:phoneNumber`                  | List all groups          |
+| POST   | `/api/send-group/by-number/:phoneNumber`              | Send text to group       |
+| POST   | `/api/send-group/by-number/:phoneNumber/media`        | Send media file to group |
+| POST   | `/api/send-group/by-number/:phoneNumber/media-url`    | Send media URL to group  |
+
+---
+
+## File Manager API
+
+File browser for the uploads directory (requires JWT):
+
+| Method | Endpoint      | Description                     |
+|:-------|:--------------|:--------------------------------|
+| GET    | `/api/files`  | List uploaded files             |
+| DELETE | `/api/files`  | Delete a file (admin only)      |
+
+---
+
+## System Identity API
+
+Company branding configuration (requires JWT):
+
+| Method | Endpoint               | Description                           |
+|:-------|:-----------------------|:--------------------------------------|
+| GET    | `/api/system/identity` | Get system identity (name, logos)     |
+| POST   | `/api/system/identity` | Update identity (admin only, multipart)|
+
+---
+
+## Warming System API
+
+WhatsApp conversation simulation management (requires JWT):
+
+### Scripts
+
+| Method | Endpoint                    | Description         |
+|:-------|:----------------------------|:--------------------|
+| POST   | `/api/warming/scripts`      | Create script       |
+| GET    | `/api/warming/scripts`      | List all scripts    |
+| GET    | `/api/warming/scripts/:id`  | Get script by ID    |
+| PUT    | `/api/warming/scripts/:id`  | Update script       |
+| DELETE | `/api/warming/scripts/:id`  | Delete script       |
+
+### Script Lines
+
+| Method | Endpoint                                            | Description              |
+|:-------|:----------------------------------------------------|:-------------------------|
+| POST   | `/api/warming/scripts/:scriptId/lines`              | Create line              |
+| GET    | `/api/warming/scripts/:scriptId/lines`              | List all lines           |
+| GET    | `/api/warming/scripts/:scriptId/lines/:id`          | Get line by ID           |
+| PUT    | `/api/warming/scripts/:scriptId/lines/:id`          | Update line              |
+| DELETE | `/api/warming/scripts/:scriptId/lines/:id`          | Delete line              |
+| POST   | `/api/warming/scripts/:scriptId/lines/generate`     | AI-generate lines        |
+| PUT    | `/api/warming/scripts/:scriptId/lines/reorder`      | Reorder lines            |
+
+### Templates
+
+| Method | Endpoint                       | Description         |
+|:-------|:-------------------------------|:--------------------|
+| POST   | `/api/warming/templates`       | Create template     |
+| GET    | `/api/warming/templates`       | List all templates  |
+| GET    | `/api/warming/templates/:id`   | Get template by ID  |
+| PUT    | `/api/warming/templates/:id`   | Update template     |
+| DELETE | `/api/warming/templates/:id`   | Delete template     |
+
+### Rooms (Execution)
+
+| Method | Endpoint                              | Description            |
+|:-------|:--------------------------------------|:-----------------------|
+| POST   | `/api/warming/rooms`                  | Create room            |
+| GET    | `/api/warming/rooms`                  | List all rooms         |
+| GET    | `/api/warming/rooms/:id`              | Get room by ID         |
+| PUT    | `/api/warming/rooms/:id`              | Update room            |
+| DELETE | `/api/warming/rooms/:id`              | Delete room            |
+| PATCH  | `/api/warming/rooms/:id/status`       | Update room status     |
+| POST   | `/api/warming/rooms/:id/restart`      | Restart room execution |
+
+### Logs
+
+| Method | Endpoint                  | Description         |
+|:-------|:--------------------------|:--------------------|
+| GET    | `/api/warming/logs`       | List all logs       |
+| GET    | `/api/warming/logs/:id`   | Get log by ID       |
+
+---
+
+## Worker Config API
+
+Blast outbox worker configuration (requires JWT):
+
+| Method | Endpoint                                        | Description                    |
+|:-------|:------------------------------------------------|:-------------------------------|
+| POST   | `/api/blast-outbox/configs`                     | Create worker config           |
+| GET    | `/api/blast-outbox/configs`                     | List all configs               |
+| GET    | `/api/blast-outbox/configs/:id`                 | Get config by ID               |
+| PUT    | `/api/blast-outbox/configs/:id`                 | Update config                  |
+| DELETE | `/api/blast-outbox/configs/:id`                 | Delete config                  |
+| POST   | `/api/blast-outbox/configs/:id/toggle`          | Toggle config enabled/disabled |
+| GET    | `/api/blast-outbox/available-circles`           | List available circles         |
+| GET    | `/api/blast-outbox/available-applications`      | List available applications    |
 
 ---
 
@@ -584,12 +959,6 @@ An OpenAPI 3.0 specification is included in `api_docs/openapi.json`.
 ## Disclaimer
 
 This project is intended for educational and research purposes only. Use at your own risk.
-
----
-
-## License
-
-See [LICENSE](LICENSE) for details.
 
 ---
 
