@@ -92,9 +92,30 @@ func GetAllWarmingRooms(c echo.Context) error {
 	})
 }
 
+// checkRoomOwnership verifies the caller owns the room (admin bypass)
+func checkRoomOwnership(c echo.Context, roomID string) error {
+	userID, ok := c.Get("user_id").(int64)
+	if !ok {
+		return handler.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", "UNAUTHORIZED", "")
+	}
+	role, _ := c.Get("role").(string)
+	if role == "admin" {
+		return nil
+	}
+	isOwner, err := warmingModel.CheckRoomOwnership(roomID, userID)
+	if err != nil || !isOwner {
+		return handler.ErrorResponse(c, http.StatusForbidden, "You don't have permission to access this room", "FORBIDDEN", "")
+	}
+	return nil
+}
+
 // GetWarmingRoomByID handles GET /warming/rooms/:id
 func GetWarmingRoomByID(c echo.Context) error {
 	id := c.Param("id")
+
+	if err := checkRoomOwnership(c, id); err != nil {
+		return err
+	}
 
 	room, err := warmingService.GetWarmingRoomByIDService(id)
 	if err != nil {
@@ -111,6 +132,10 @@ func GetWarmingRoomByID(c echo.Context) error {
 // UpdateWarmingRoom handles PUT /warming/rooms/:id
 func UpdateWarmingRoom(c echo.Context) error {
 	id := c.Param("id")
+
+	if err := checkRoomOwnership(c, id); err != nil {
+		return err
+	}
 
 	var req warmingModel.UpdateWarmingRoomRequest
 	if err := c.Bind(&req); err != nil {
@@ -141,6 +166,10 @@ func UpdateWarmingRoom(c echo.Context) error {
 func DeleteWarmingRoom(c echo.Context) error {
 	id := c.Param("id")
 
+	if err := checkRoomOwnership(c, id); err != nil {
+		return err
+	}
+
 	err := warmingService.DeleteWarmingRoomService(id)
 	if err != nil {
 		if errors.Is(err, warmingService.ErrRoomNotFound) {
@@ -160,6 +189,10 @@ func DeleteWarmingRoom(c echo.Context) error {
 // UpdateRoomStatus handles PATCH /warming/rooms/:id/status
 func UpdateRoomStatus(c echo.Context) error {
 	id := c.Param("id")
+
+	if err := checkRoomOwnership(c, id); err != nil {
+		return err
+	}
 
 	var req struct {
 		Status string `json:"status"`
@@ -192,6 +225,10 @@ func UpdateRoomStatus(c echo.Context) error {
 // RestartWarmingRoom handles POST /warming/rooms/:id/restart
 func RestartWarmingRoom(c echo.Context) error {
 	id := c.Param("id")
+
+	if err := checkRoomOwnership(c, id); err != nil {
+		return err
+	}
 
 	err := warmingService.RestartRoomService(id)
 	if err != nil {
