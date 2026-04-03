@@ -11,15 +11,16 @@ func RenderSpintax(text string) string {
 	result := RenderDynamicVariables(text)
 
 	for {
-		start := strings.Index(result, "{")
-		if start == -1 {
-			break
-		}
-		end := strings.Index(result[start:], "}")
+		// Find first closing brace
+		end := strings.Index(result, "}")
 		if end == -1 {
 			break
 		}
-		end += start
+		// Find the matching opening brace (innermost pair)
+		start := strings.LastIndex(result[:end], "{")
+		if start == -1 {
+			break
+		}
 
 		spintax := result[start+1 : end]
 		options := strings.Split(spintax, "|")
