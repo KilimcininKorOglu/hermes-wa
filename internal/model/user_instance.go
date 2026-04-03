@@ -152,3 +152,43 @@ func UpdateInstanceCreatedBy(instanceID string, userID int64) error {
 	_, err := db.Exec(query, userID, instanceID)
 	return err
 }
+
+// GetUserInstanceCircles returns distinct circles from instances the user has access to
+func GetUserInstanceCircles(userID int64) ([]string, error) {
+	db := database.AppDB
+
+	query := `
+		SELECT DISTINCT i.circle
+		FROM user_instances ui
+		JOIN instances i ON ui.instance_id = i.instance_id
+		WHERE ui.user_id = $1 AND i.circle IS NOT NULL AND i.circle != ''
+	`
+
+	rows, err := db.Query(query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var circles []string
+	for rows.Next() {
+		var circle string
+		if err := rows.Scan(&circle); err != nil {
+			return nil, err
+		}
+		circles = append(circles, circle)
+	}
+
+	return circles, nil
+}
+
+// CountUserInstances returns the number of instances a user owns
+func CountUserInstances(userID int64) (int, error) {
+	db := database.AppDB
+
+	query := `SELECT COUNT(*) FROM user_instances WHERE user_id = $1`
+
+	var count int
+	err := db.QueryRow(query, userID).Scan(&count)
+	return count, err
+}

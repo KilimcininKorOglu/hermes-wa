@@ -98,6 +98,25 @@ func CreateWorkerConfig(c echo.Context) error {
 		return ErrorResponse(c, http.StatusBadRequest, "worker_name, circle, and application are required", "VALIDATION_ERROR", "")
 	}
 
+	// Non-admin users can only use circles they have access to
+	isAdmin := claims.Role == "admin"
+	if !isAdmin {
+		allowedCircles, err := model.GetUserInstanceCircles(claims.UserID)
+		if err != nil {
+			return ErrorResponse(c, http.StatusInternalServerError, "Failed to verify circle access", "INTERNAL_ERROR", err.Error())
+		}
+		circleAllowed := false
+		for _, circle := range allowedCircles {
+			if circle == req.Circle {
+				circleAllowed = true
+				break
+			}
+		}
+		if !circleAllowed {
+			return ErrorResponse(c, http.StatusForbidden, "You don't have access to instances in this circle", "FORBIDDEN", "")
+		}
+	}
+
 	if req.MessageType != "direct" && req.MessageType != "group" {
 		req.MessageType = "direct" // Default
 	}
@@ -140,7 +159,6 @@ func CreateWorkerConfig(c echo.Context) error {
 	}
 
 	// Set user_id from authenticated user (admin can override)
-	isAdmin := claims.Role == "admin"
 	if isAdmin && req.UserID != 0 {
 		config.UserID = req.UserID
 	} else {
@@ -190,6 +208,24 @@ func UpdateWorkerConfig(c echo.Context) error {
 	// Validation
 	if req.WorkerName == "" || req.Circle == "" || req.Application == "" {
 		return ErrorResponse(c, http.StatusBadRequest, "worker_name, circle, and application are required", "VALIDATION_ERROR", "")
+	}
+
+	// Non-admin users can only use circles they have access to
+	if !isAdmin {
+		allowedCircles, err := model.GetUserInstanceCircles(claims.UserID)
+		if err != nil {
+			return ErrorResponse(c, http.StatusInternalServerError, "Failed to verify circle access", "INTERNAL_ERROR", err.Error())
+		}
+		circleAllowed := false
+		for _, circle := range allowedCircles {
+			if circle == req.Circle {
+				circleAllowed = true
+				break
+			}
+		}
+		if !circleAllowed {
+			return ErrorResponse(c, http.StatusForbidden, "You don't have access to instances in this circle", "FORBIDDEN", "")
+		}
 	}
 
 	if req.MessageType != "direct" && req.MessageType != "group" {
