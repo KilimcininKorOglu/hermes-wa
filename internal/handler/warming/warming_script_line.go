@@ -141,6 +141,16 @@ func GetWarmingScriptLineByID(c echo.Context) error {
 		return handler.ErrorResponse(c, http.StatusBadRequest, "Invalid line ID", "INVALID_LINE_ID", err.Error())
 	}
 
+	// Check parent script ownership for non-admin users
+	userID, _ := c.Get("user_id").(int64)
+	role, _ := c.Get("role").(string)
+	if role != "admin" {
+		isOwner, err := warmingModel.CheckScriptOwnership(int(scriptID), userID)
+		if err != nil || !isOwner {
+			return handler.ErrorResponse(c, http.StatusForbidden, "Access denied", "FORBIDDEN", "")
+		}
+	}
+
 	line, err := warmingService.GetWarmingScriptLineByIDService(scriptID, lineID)
 	if err != nil {
 		if errors.Is(err, warmingService.ErrScriptLineNotFound) {

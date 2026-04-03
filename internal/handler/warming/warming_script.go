@@ -95,6 +95,13 @@ func GetWarmingScriptByID(c echo.Context) error {
 		return handler.ErrorResponse(c, http.StatusInternalServerError, "Failed to get warming script", "GET_FAILED", err.Error())
 	}
 
+	// Check ownership for non-admin users (allow public/NULL-owned scripts)
+	userID, _ := c.Get("user_id").(int64)
+	role, _ := c.Get("role").(string)
+	if role != "admin" && script.CreatedBy.Valid && script.CreatedBy.Int64 != userID {
+		return handler.ErrorResponse(c, http.StatusForbidden, "Access denied", "FORBIDDEN", "")
+	}
+
 	resp := warmingModel.ToWarmingScriptResponse(*script)
 	return handler.SuccessResponse(c, http.StatusOK, "Warming script retrieved successfully", resp)
 }

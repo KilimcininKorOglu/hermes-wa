@@ -99,6 +99,13 @@ func GetWarmingTemplateByID(c echo.Context) error {
 		return handler.ErrorResponse(c, http.StatusInternalServerError, "Failed to get template", "GET_FAILED", err.Error())
 	}
 
+	// Check ownership for non-admin users (allow public/NULL-owned templates)
+	userID, _ := c.Get("user_id").(int64)
+	role, _ := c.Get("role").(string)
+	if role != "admin" && template.CreatedBy.Valid && template.CreatedBy.Int64 != userID {
+		return handler.ErrorResponse(c, http.StatusForbidden, "Access denied", "FORBIDDEN", "")
+	}
+
 	resp := warmingModel.ToWarmingTemplateResponse(*template)
 	return handler.SuccessResponse(c, http.StatusOK, "Template retrieved successfully", resp)
 }
