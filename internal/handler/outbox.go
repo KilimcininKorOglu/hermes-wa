@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"hermeswa/internal/helper"
 	"hermeswa/internal/model"
 
 	"github.com/labstack/echo/v4"
@@ -40,6 +41,13 @@ func EnqueueOutbox(c echo.Context) error {
 	}
 	if req.Message == "" {
 		return ErrorResponse(c, http.StatusBadRequest, "Message is required", "VALIDATION_ERROR", "")
+	}
+
+	// Check daily per-user limit
+	maxDaily := helper.GetEnvAsInt("OUTBOX_MAX_DAILY_PER_USER", 10000)
+	todayCount, err := model.GetUserOutboxCountToday(c.Request().Context(), int(claims.UserID))
+	if err == nil && todayCount >= maxDaily {
+		return ErrorResponse(c, http.StatusTooManyRequests, "Daily message limit reached", "RATE_LIMIT", "")
 	}
 
 	// If API key has a fixed application, enforce it
@@ -82,6 +90,13 @@ func EnqueueOutboxBatch(c echo.Context) error {
 	}
 	if len(req.Messages) > 1000 {
 		return ErrorResponse(c, http.StatusBadRequest, "Maximum 1000 messages per batch", "VALIDATION_ERROR", "")
+	}
+
+	// Check daily per-user limit
+	maxDaily := helper.GetEnvAsInt("OUTBOX_MAX_DAILY_PER_USER", 10000)
+	todayCount, err := model.GetUserOutboxCountToday(c.Request().Context(), int(claims.UserID))
+	if err == nil && todayCount+len(req.Messages) > maxDaily {
+		return ErrorResponse(c, http.StatusTooManyRequests, "Daily message limit would be exceeded", "RATE_LIMIT", "")
 	}
 
 	msgs := make([]model.OutboxEnqueueRequest, 0, len(req.Messages))

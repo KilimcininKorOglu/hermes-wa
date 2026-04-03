@@ -266,6 +266,17 @@ func ListOutboxMessages(ctx context.Context, filter OutboxFilter) ([]OutboxMessa
 	return messages, total, rows.Err()
 }
 
+// GetUserOutboxCountToday returns the number of messages a user has enqueued today
+func GetUserOutboxCountToday(ctx context.Context, userID int) (int, error) {
+	db := database.OutboxDB
+
+	query := `SELECT COUNT(*) FROM outbox WHERE client_id = $1 AND insertdatetime >= CURRENT_DATE`
+
+	var count int
+	err := db.QueryRowContext(ctx, query, userID).Scan(&count)
+	return count, err
+}
+
 func nullStr(s string) sql.NullString {
 	if s == "" {
 		return sql.NullString{}
