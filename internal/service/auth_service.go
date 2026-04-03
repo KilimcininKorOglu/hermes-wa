@@ -210,8 +210,8 @@ func GenerateRefreshTokenForUser(user *model.User, ipAddress, userAgent string) 
 
 // RefreshAccessToken validates refresh token and generates new access token
 func RefreshAccessToken(refreshTokenString string) (string, string, *model.User, error) {
-	// Get refresh token from database
-	refreshToken, err := model.GetRefreshToken(refreshTokenString)
+	// Atomically get and revoke the refresh token within a transaction
+	refreshToken, err := model.GetAndRevokeRefreshToken(refreshTokenString)
 	if err != nil {
 		return "", "", nil, err
 	}
@@ -226,9 +226,6 @@ func RefreshAccessToken(refreshTokenString string) (string, string, *model.User,
 	if !user.IsActive {
 		return "", "", nil, errors.New("user account is disabled")
 	}
-
-	// Revoke the consumed refresh token (rotation)
-	_ = model.RevokeRefreshToken(refreshTokenString)
 
 	// Generate new access token
 	accessToken, err := GenerateAccessToken(user)

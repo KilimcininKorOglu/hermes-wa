@@ -103,6 +103,59 @@ func GetRefreshToken(token string) (*RefreshToken, error) {
 	return rt, nil
 }
 
+// GetAndRevokeRefreshToken atomically retrieves and revokes a refresh token
+// within a database transaction to prevent race conditions
+func GetAndRevokeRefreshToken(tokenStr string) (*RefreshToken, error) {
+	db := database.AppDB
+
+	tx, err := db.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	// SELECT ... FOR UPDATE locks the row for the duration of the transaction
+	query := `
+		SELECT id, user_id, token, expires_at, created_at, revoked, ip_address, user_agent
+		FROM refresh_tokens
+		WHERE token = $1
+		FOR UPDATE
+	`
+
+	rt := &RefreshToken{}
+	err = tx.QueryRow(query, tokenStr).Scan(
+		&rt.ID, &rt.UserID, &rt.Token, &rt.ExpiresAt, &rt.CreatedAt,
+		&rt.Revoked, &rt.IPAddress, &rt.UserAgent,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, ErrTokenNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if rt.Revoked {
+		return nil, ErrTokenRevoked
+	}
+
+	if time.Now().After(rt.ExpiresAt) {
+		return nil, ErrTokenExpired
+	}
+
+	// Revoke the token within the same transaction
+	_, err = tx.Exec(`UPDATE refresh_tokens SET revoked = true WHERE id = $1`, rt.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return rt, nil
+}
+
 // RevokeRefreshToken marks a refresh token as revoked (logout)
 func RevokeRefreshToken(token string) error {
 	db := database.AppDB
