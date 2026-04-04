@@ -29,6 +29,14 @@ func RequireInstanceAccess() echo.MiddlewareFunc {
 				return next(c)
 			}
 
+			// Viewer role is read-only; block all instance write operations
+			if userClaims.Role == "viewer" {
+				return c.JSON(http.StatusForbidden, map[string]interface{}{
+					"success": false,
+					"message": "Viewers do not have access to instance operations",
+				})
+			}
+
 			// Get instanceId from path params
 			instanceID := c.Param("instanceId")
 			if instanceID == "" {
@@ -80,6 +88,14 @@ func RequirePhoneNumberAccess() echo.MiddlewareFunc {
 			// Admin has full access
 			if userClaims.Role == "admin" {
 				return next(c)
+			}
+
+			// Viewer role is read-only; block all phone-number-scoped operations
+			if userClaims.Role == "viewer" {
+				return c.JSON(http.StatusForbidden, map[string]interface{}{
+					"success": false,
+					"message": "Viewers do not have access to instance operations",
+				})
 			}
 
 			// Get phoneNumber from path params
