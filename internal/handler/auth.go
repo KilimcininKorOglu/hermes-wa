@@ -59,6 +59,11 @@ func Login(c echo.Context) error {
 	// Get current user from context (set by JWT middleware)
 	userClaims, _ := c.Get("user_claims").(*service.Claims)
 
+	// Only admin and user roles may create instances
+	if userClaims != nil && userClaims.Role == "viewer" {
+		return ErrorResponse(c, 403, "Viewers cannot create instances", "FORBIDDEN", "")
+	}
+
 	// Check instance creation limit for non-admin users
 	if userClaims != nil && userClaims.Role != "admin" {
 		maxInstances := helper.GetEnvAsInt("MAX_INSTANCES_PER_USER", 10)
