@@ -16,6 +16,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"hermeswa/internal/helper"
 )
 
 type WorkerInstance struct {
@@ -260,7 +262,12 @@ func (w *WorkerInstance) sendWebhook(msg *OutboxMessage, status int, statusText 
 		log.Printf("[%s] Webhook signature generated: %s", w.config.WorkerName, signature)
 	}
 
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+		Transport: &http.Transport{
+			DialContext: helper.SSRFSafeDialContext,
+		},
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("[%s] Webhook send error: %v", w.config.WorkerName, err)
