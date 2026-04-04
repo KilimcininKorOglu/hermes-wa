@@ -43,12 +43,7 @@ func EnqueueOutbox(c echo.Context) error {
 		return ErrorResponse(c, http.StatusBadRequest, "Message is required", "VALIDATION_ERROR", "")
 	}
 
-	// Check daily per-user limit
 	maxDaily := helper.GetEnvAsInt("OUTBOX_MAX_DAILY_PER_USER", 10000)
-	todayCount, err := model.GetUserOutboxCountToday(c.Request().Context(), int(claims.UserID))
-	if err == nil && todayCount >= maxDaily {
-		return ErrorResponse(c, http.StatusTooManyRequests, "Daily message limit reached", "RATE_LIMIT", "")
-	}
 
 	// If API key has a fixed application, enforce it
 	req.Application = resolveApplication(c, req.Application)
@@ -63,8 +58,11 @@ func EnqueueOutbox(c echo.Context) error {
 		File:        req.File,
 	}
 
-	id, err := model.EnqueueOutboxMessage(c.Request().Context(), msg, int(claims.UserID))
+	id, err := model.EnqueueOutboxMessageWithLimit(c.Request().Context(), msg, int(claims.UserID), maxDaily)
 	if err != nil {
+		if err == model.ErrDailyLimitReached {
+			return ErrorResponse(c, http.StatusTooManyRequests, "Daily message limit reached", "RATE_LIMIT", "")
+		}
 		return ErrorResponse(c, http.StatusInternalServerError, "Failed to enqueue message", "INTERNAL_ERROR", err.Error())
 	}
 
@@ -92,12 +90,7 @@ func EnqueueOutboxBatch(c echo.Context) error {
 		return ErrorResponse(c, http.StatusBadRequest, "Maximum 1000 messages per batch", "VALIDATION_ERROR", "")
 	}
 
-	// Check daily per-user limit
 	maxDaily := helper.GetEnvAsInt("OUTBOX_MAX_DAILY_PER_USER", 10000)
-	todayCount, err := model.GetUserOutboxCountToday(c.Request().Context(), int(claims.UserID))
-	if err == nil && todayCount+len(req.Messages) > maxDaily {
-		return ErrorResponse(c, http.StatusTooManyRequests, "Daily message limit would be exceeded", "RATE_LIMIT", "")
-	}
 
 	msgs := make([]model.OutboxEnqueueRequest, 0, len(req.Messages))
 	for i, m := range req.Messages {
@@ -120,8 +113,11 @@ func EnqueueOutboxBatch(c echo.Context) error {
 		})
 	}
 
-	ids, err := model.EnqueueOutboxBatch(c.Request().Context(), msgs, int(claims.UserID))
+	ids, err := model.EnqueueOutboxBatchWithLimit(c.Request().Context(), msgs, int(claims.UserID), maxDaily)
 	if err != nil {
+		if err == model.ErrDailyLimitReached {
+			return ErrorResponse(c, http.StatusTooManyRequests, "Daily message limit would be exceeded", "RATE_LIMIT", "")
+		}
 		return ErrorResponse(c, http.StatusInternalServerError, "Failed to enqueue batch", "INTERNAL_ERROR", err.Error())
 	}
 

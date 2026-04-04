@@ -277,6 +277,111 @@ func GetUserOutboxCountToday(ctx context.Context, userID int) (int, error) {
 	return count, err
 }
 
+// ErrDailyLimitReached is returned when a user has reached their daily outbox limit.
+var ErrDailyLimitReached = fmt.Errorf("daily outbox limit reached")
+
+// enqueueCountToday counts today's messages for a user inside an existing transaction.
+func enqueueCountToday(ctx context.Context, tx *sql.Tx, userID int) (int, error) {
+	var count int
+	err := tx.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM outbox WHERE client_id = $1 AND insertdatetime >= CURRENT_DATE`,
+		userID,
+	).Scan(&count)
+	return count, err
+}
+
+// EnqueueOutboxMessageWithLimit atomically checks the daily limit and inserts a
+// single message. Uses a PostgreSQL advisory lock to prevent TOCTOU races.
+func EnqueueOutboxMessageWithLimit(ctx context.Context, msg OutboxEnqueueRequest, clientID int, maxDaily int) (int64, error) {
+	tx, err := database.OutboxDB.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	if _, err = tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock($1)", clientID); err != nil {
+		return 0, fmt.Errorf("failed to acquire lock: %w", err)
+	}
+
+	count, err := enqueueCountToday(ctx, tx, clientID)
+	if err != nil {
+		return 0, fmt.Errorf("failed to check daily limit: %w", err)
+	}
+	if count >= maxDaily {
+		return 0, ErrDailyLimitReached
+	}
+
+	msgType := msg.Type
+	if msgType == 0 {
+		msgType = 1
+	}
+	var id int64
+	if err = tx.QueryRowContext(ctx,
+		`INSERT INTO outbox (destination, messages, status, application, type, priority, table_id, file, client_id, insertDateTime)
+		 VALUES ($1, $2, 0, $3, $4, $5, $6, $7, $8, NOW()) RETURNING id_outbox`,
+		msg.Destination, msg.Message, nullStr(msg.Application), msgType, msg.Priority,
+		nullStr(msg.TableID), nullStr(msg.File), clientID,
+	).Scan(&id); err != nil {
+		return 0, fmt.Errorf("failed to enqueue message: %w", err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return 0, fmt.Errorf("failed to commit: %w", err)
+	}
+	return id, nil
+}
+
+// EnqueueOutboxBatchWithLimit atomically checks the daily limit and inserts
+// a batch of messages. Uses a PostgreSQL advisory lock to prevent TOCTOU races.
+func EnqueueOutboxBatchWithLimit(ctx context.Context, msgs []OutboxEnqueueRequest, clientID int, maxDaily int) ([]int64, error) {
+	tx, err := database.OutboxDB.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	if _, err = tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock($1)", clientID); err != nil {
+		return nil, fmt.Errorf("failed to acquire lock: %w", err)
+	}
+
+	count, err := enqueueCountToday(ctx, tx, clientID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check daily limit: %w", err)
+	}
+	if count+len(msgs) > maxDaily {
+		return nil, ErrDailyLimitReached
+	}
+
+	stmt, err := tx.PrepareContext(ctx,
+		`INSERT INTO outbox (destination, messages, status, application, type, priority, table_id, file, client_id, insertDateTime)
+		 VALUES ($1, $2, 0, $3, $4, $5, $6, $7, $8, NOW()) RETURNING id_outbox`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to prepare statement: %w", err)
+	}
+	defer stmt.Close()
+
+	ids := make([]int64, 0, len(msgs))
+	for _, msg := range msgs {
+		msgType := msg.Type
+		if msgType == 0 {
+			msgType = 1
+		}
+		var id int64
+		if err = stmt.QueryRowContext(ctx,
+			msg.Destination, msg.Message, nullStr(msg.Application), msgType, msg.Priority,
+			nullStr(msg.TableID), nullStr(msg.File), clientID,
+		).Scan(&id); err != nil {
+			return nil, fmt.Errorf("failed to insert message: %w", err)
+		}
+		ids = append(ids, id)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, fmt.Errorf("failed to commit: %w", err)
+	}
+	return ids, nil
+}
+
 func nullStr(s string) sql.NullString {
 	if s == "" {
 		return sql.NullString{}
