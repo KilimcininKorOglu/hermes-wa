@@ -79,7 +79,9 @@ export function FilesPage() {
   }
 
   const handlePreview = (entry: FileEntry) => {
-    if (/\.(jpg|jpeg|png|webp|gif|svg)$/i.test(entry.name)) {
+    // SVG is excluded from inline preview — it executes scripts when opened as a
+    // top-level document on the same origin, enabling stored XSS.
+    if (/\.(jpg|jpeg|png|webp|gif)$/i.test(entry.name)) {
       setPreview(`/uploads/${entry.path}`)
     } else {
       window.open(`/uploads/${entry.path}`, "_blank")

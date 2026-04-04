@@ -227,6 +227,11 @@ func main() {
 			if strings.HasPrefix(c.Request().URL.Path, "/uploads/") {
 				c.Response().Header().Set("X-Content-Type-Options", "nosniff")
 				c.Response().Header().Set("Content-Security-Policy", "default-src 'none'")
+				// Force SVG files to download rather than render inline — SVG can
+				// execute embedded scripts when opened as a top-level document.
+				if strings.HasSuffix(strings.ToLower(c.Request().URL.Path), ".svg") {
+					c.Response().Header().Set("Content-Disposition", "attachment")
+				}
 			}
 			return next(c)
 		}
