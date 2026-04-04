@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"hermeswa/internal/helper"
 	"hermeswa/internal/model"
@@ -131,7 +132,11 @@ func UpdateSystemIdentityFull(c echo.Context) error {
 		}
 
 		if oldPath != "" {
-			helper.DeleteFile(filepath.Join(".", oldPath))
+			uploadsBase, _ := filepath.Abs("uploads")
+			resolvedOld, err := filepath.Abs(filepath.Join(".", oldPath))
+			if err == nil && strings.HasPrefix(resolvedOld, uploadsBase+string(filepath.Separator)) {
+				helper.DeleteFile(resolvedOld)
+			}
 		}
 
 		// Save new file
