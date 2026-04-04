@@ -58,15 +58,15 @@ export function InstancesPage() {
     globalWs.connect()
     const handler = (event: WsEvent) => {
       const data = event.data as Record<string, unknown>
-      if (event.event === "QR_GENERATED" && data.instanceId === scanningId) {
-        setQrData({ instanceId: data.instanceId as string, qr: data.qr_data as string })
+      if (event.event === "QR_GENERATED" && data.instance_id === scanningId) {
+        setQrData({ instanceId: data.instance_id as string, qr: data.qr_data as string })
       }
       if (event.event === "INSTANCE_STATUS_CHANGED" || event.event === "QR_EXPIRED") {
         fetchInstances()
         if (event.event === "INSTANCE_STATUS_CHANGED" && data.status === "connected") {
           setQrData(null)
           setScanningId(null)
-          toast.success(`Instance ${data.instanceId} connected`)
+          toast.success(`Instance ${data.instance_id} connected`)
         }
         if (event.event === "QR_EXPIRED") { setQrData(null); setScanningId(null) }
       }
