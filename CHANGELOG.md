@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.3] - 2026-04-04
+
+### Added
+- Configurable phone country code via `PHONE_COUNTRY_CODE` env var (e.g. `90` for Turkey, `62` for Indonesia); auto-converts local formats (`0XXXXXXXXX`, `XXXXXXXXX`) to full E.164
+
+### Fixed
+- WebSocket `QR_GENERATED` event handler read `data.instanceId` (camelCase) instead of `data.instance_id` (snake_case) — QR code never appeared on screen
+
+### Changed
+- `.env.example` corrected: database names, placeholder credentials, removed MySQL reference, inline comments moved to separate lines
+- Docker compose app config moved inline; secrets remain in `.env.docker`
+
 ## [1.2.2] - 2026-04-04
 
 ### Fixed
