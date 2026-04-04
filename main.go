@@ -364,11 +364,11 @@ func main() {
 	//----------------------------
 	blastOutbox := api.Group("/blast-outbox")
 	blastOutbox.GET("/configs", handler.GetWorkerConfigs)
-	blastOutbox.POST("/configs", handler.CreateWorkerConfig)
+	blastOutbox.POST("/configs", handler.CreateWorkerConfig, customMiddleware.RequireRole("admin", "user"))
 	blastOutbox.GET("/configs/:id", handler.GetWorkerConfig)
-	blastOutbox.PUT("/configs/:id", handler.UpdateWorkerConfig)
-	blastOutbox.DELETE("/configs/:id", handler.DeleteWorkerConfig)
-	blastOutbox.POST("/configs/:id/toggle", handler.ToggleWorkerConfig)
+	blastOutbox.PUT("/configs/:id", handler.UpdateWorkerConfig, customMiddleware.RequireRole("admin", "user"))
+	blastOutbox.DELETE("/configs/:id", handler.DeleteWorkerConfig, customMiddleware.RequireRole("admin", "user"))
+	blastOutbox.POST("/configs/:id/toggle", handler.ToggleWorkerConfig, customMiddleware.RequireRole("admin", "user"))
 
 	// Helper endpoints for frontend
 	blastOutbox.GET("/available-circles", handler.GetAvailableCircles)
@@ -378,9 +378,9 @@ func main() {
 	// API KEY MANAGEMENT (JWT protected)
 	//----------------------------
 	apiKeys := api.Group("/api-keys")
-	apiKeys.POST("", handler.CreateAPIKey)
+	apiKeys.POST("", handler.CreateAPIKey, customMiddleware.RequireRole("admin", "user"))
 	apiKeys.GET("", handler.ListAPIKeys)
-	apiKeys.DELETE("/:id", handler.DeleteAPIKey)
+	apiKeys.DELETE("/:id", handler.DeleteAPIKey, customMiddleware.RequireRole("admin", "user"))
 
 	//----------------------------
 	// OUTBOX API (API Key protected)
