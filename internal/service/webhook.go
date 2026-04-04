@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"hermeswa/internal/helper"
 	"hermeswa/internal/model"
 )
 
@@ -112,7 +113,12 @@ func SendIncomingMessageWebhook(instanceID string, data map[string]interface{}) 
 		req.Header.Set("X-HERMESWA-Signature", signature)
 	}
 
-	client := &http.Client{Timeout: 5 * time.Second}
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+		Transport: &http.Transport{
+			DialContext: helper.SSRFSafeDialContext,
+		},
+	}
 	go func() {
 		resp, err := client.Do(req)
 		if err != nil {
