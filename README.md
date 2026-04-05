@@ -356,6 +356,7 @@ Configure these in your `.env` file.
 | `HERMESWA_ENABLE_WEBHOOK`                | Enable global incoming message webhooks     | `false` | `true`  |
 | `HERMESWA_TYPING_DELAY_MIN`              | Minimum typing simulation delay (seconds)   | `1`     | `2`     |
 | `HERMESWA_TYPING_DELAY_MAX`              | Maximum typing simulation delay (seconds)   | `3`     | `5`     |
+| `PHONE_COUNTRY_CODE`                     | Country code for phone number formatting    | --      | `90`    |
 | `ALLOW_9_DIGIT_PHONE_NUMBER`             | Allow 9-digit numbers without validation    | `false` | `true`  |
 
 ### JWT Token Configuration
@@ -377,6 +378,18 @@ Configure these in your `.env` file.
 | `AVATAR_OUTPUT_FORMAT` | Output format after processing   | `webp`                 | `png`            |
 | `AVATAR_MAX_DIMENSION` | Maximum dimension in pixels      | `1024`                 | `2048`           |
 | `AVATAR_MIN_DIMENSION` | Minimum dimension in pixels      | `100`                  | `50`             |
+
+### Phone Number Format
+
+Phone numbers are automatically formatted using the `PHONE_COUNTRY_CODE` environment variable:
+
+| Format | Conversion |
+|:-------|:-----------|
+| `0XXXXXXXXX` | `PHONE_COUNTRY_CODE` prefix prepended (e.g. `0555...` → `90555...`) |
+| `XXXXXXXXX` (no prefix) | `PHONE_COUNTRY_CODE` prefix prepended |
+| Country code already present | Passed through unchanged |
+
+If `PHONE_COUNTRY_CODE` is empty, full international format is required with no auto-conversion.
 
 ### Rate Limiting
 
