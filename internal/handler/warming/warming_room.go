@@ -145,7 +145,11 @@ func UpdateWarmingRoom(c echo.Context) error {
 		return handler.ErrorResponse(c, http.StatusBadRequest, "Invalid request body", "BAD_REQUEST", err.Error())
 	}
 
-	err := warmingService.UpdateWarmingRoomService(id, &req)
+	userID, _ := c.Get("user_id").(int64)
+	role, _ := c.Get("role").(string)
+	isAdmin := role == "admin"
+
+	err := warmingService.UpdateWarmingRoomService(id, &req, userID, isAdmin)
 	if err != nil {
 		if errors.Is(err, warmingService.ErrRoomNameRequired) {
 			return handler.ErrorResponse(c, http.StatusBadRequest, err.Error(), "NAME_REQUIRED", "")

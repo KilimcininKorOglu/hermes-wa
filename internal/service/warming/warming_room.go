@@ -220,7 +220,7 @@ func GetWarmingRoomByIDService(id string) (*warmingModel.WarmingRoom, error) {
 }
 
 // UpdateWarmingRoomService updates existing room with validation
-func UpdateWarmingRoomService(id string, req *warmingModel.UpdateWarmingRoomRequest) error {
+func UpdateWarmingRoomService(id string, req *warmingModel.UpdateWarmingRoomRequest, userID int64, isAdmin bool) error {
 	if strings.TrimSpace(id) == "" {
 		return errors.New("invalid room ID")
 	}
@@ -278,13 +278,26 @@ func UpdateWarmingRoomService(id string, req *warmingModel.UpdateWarmingRoomRequ
 		return ErrRoomScriptRequired
 	}
 
-	// Check if script exists
-	_, err = warmingModel.GetWarmingScriptByID(int(req.ScriptID))
-	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
+	// Check if script exists and belongs to this user
+	if !isAdmin {
+		isOwner, err := warmingModel.CheckScriptOwnership(int(req.ScriptID), userID)
+		if err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				return errors.New("script not found")
+			}
+			return fmt.Errorf("failed to verify script: %w", err)
+		}
+		if !isOwner {
 			return errors.New("script not found")
 		}
-		return fmt.Errorf("failed to verify script: %w", err)
+	} else {
+		_, err = warmingModel.GetWarmingScriptByID(int(req.ScriptID))
+		if err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				return errors.New("script not found")
+			}
+			return fmt.Errorf("failed to verify script: %w", err)
+		}
 	}
 
 	// Validate interval
