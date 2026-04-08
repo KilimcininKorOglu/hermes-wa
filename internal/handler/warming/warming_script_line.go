@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	"hermeswa/internal/handler"
-	warmingModel "hermeswa/internal/model/warming"
-	warmingService "hermeswa/internal/service/warming"
+	"charon/internal/handler"
+	warmingModel "charon/internal/model/warming"
+	warmingService "charon/internal/service/warming"
 
 	"github.com/labstack/echo/v4"
 )

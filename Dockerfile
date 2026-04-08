@@ -29,7 +29,7 @@ RUN go mod download
 COPY . .
 
 ENV CGO_ENABLED=1
-RUN go build -ldflags "-s -w" -o /out/hermeswa .
+RUN go build -ldflags "-s -w" -o /out/charon .
 RUN go build -ldflags "-s -w" -o /out/worker ./cmd/worker/
 
 # ============================================
@@ -44,7 +44,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Copy binaries
-COPY --from=builder /out/hermeswa /app/hermeswa
+COPY --from=builder /out/charon /app/charon
 COPY --from=builder /out/worker /app/worker
 
 # Copy frontend build
@@ -62,4 +62,4 @@ EXPOSE 2121
 HEALTHCHECK --interval=10s --timeout=3s --retries=3 \
     CMD curl -sf http://localhost:2121/ || exit 1
 
-CMD ["./hermeswa"]
+CMD ["./charon"]

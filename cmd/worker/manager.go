@@ -9,14 +9,14 @@ import (
 )
 
 type WorkerManager struct {
-	client  *HermeswaClient
+	client  *CharonClient
 	workers map[int]*WorkerInstance
 	mu      sync.RWMutex
 	ctx     context.Context
 	cancel  context.CancelFunc
 }
 
-func NewWorkerManager(client *HermeswaClient) *WorkerManager {
+func NewWorkerManager(client *CharonClient) *WorkerManager {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &WorkerManager{
 		client:  client,

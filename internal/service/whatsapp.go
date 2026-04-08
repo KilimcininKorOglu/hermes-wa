@@ -10,11 +10,11 @@ import (
 	"sync"
 	"time"
 
-	"hermeswa/config"
-	"hermeswa/database"
-	"hermeswa/internal/helper"
-	"hermeswa/internal/model"
-	"hermeswa/internal/ws"
+	"charon/config"
+	"charon/database"
+	"charon/internal/helper"
+	"charon/internal/model"
+	"charon/internal/ws"
 
 	"go.mau.fi/whatsmeow/store"
 	waLog "go.mau.fi/whatsmeow/util/log"
@@ -467,8 +467,8 @@ func CreateSession(instanceID string) (*model.Session, error) {
 	// Generate random suffix (4 digit hex) for unique identity
 	randomID := fmt.Sprintf("%04x", rand.Intn(0xffff))
 
-	// Combine OS with unique name: "Windows (HERMESWA-a1b2)"
-	customOsName := fmt.Sprintf("%s (HERMESWA-%s)", randomOS, randomID)
+	// Combine OS with unique name: "Windows (Charon-a1b2)"
+	customOsName := fmt.Sprintf("%s (Charon-%s)", randomOS, randomID)
 
 	// Set Global Device Props (will be used by NewDevice)
 	store.DeviceProps.Os = proto.String(customOsName)

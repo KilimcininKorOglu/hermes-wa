@@ -18,7 +18,7 @@ services:
     expose:
       - "2121"
     volumes:
-      - hermeswa-uploads:/app/uploads
+      - charon-uploads:/app/uploads
     depends_on:
       db-init:
         condition: service_completed_successfully
@@ -58,4 +58,4 @@ networks:
     external: true
 
 volumes:
-  hermeswa-uploads:
+  charon-uploads:

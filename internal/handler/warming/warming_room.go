@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"strings"
 
-	"hermeswa/internal/handler"
-	warmingModel "hermeswa/internal/model/warming"
-	"hermeswa/internal/service"
-	warmingService "hermeswa/internal/service/warming"
+	"charon/internal/handler"
+	warmingModel "charon/internal/model/warming"
+	"charon/internal/service"
+	warmingService "charon/internal/service/warming"
 
 	"github.com/labstack/echo/v4"
 )

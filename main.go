@@ -9,22 +9,22 @@ import (
 	"strings"
 	"time"
 
-	"hermeswa/config"
-	"hermeswa/database"
-	"hermeswa/internal/handler"
-	warmingHandler "hermeswa/internal/handler/warming"
-	"hermeswa/internal/helper"
-	customMiddleware "hermeswa/internal/middleware"
-	"hermeswa/internal/model"
-	"hermeswa/internal/service"
-	"hermeswa/internal/worker"
+	"charon/config"
+	"charon/database"
+	"charon/internal/handler"
+	warmingHandler "charon/internal/handler/warming"
+	"charon/internal/helper"
+	customMiddleware "charon/internal/middleware"
+	"charon/internal/model"
+	"charon/internal/service"
+	"charon/internal/worker"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"golang.org/x/time/rate"
 
-	"hermeswa/internal/ws"
+	"charon/internal/ws"
 )
 
 func main() {
@@ -51,8 +51,8 @@ func main() {
 	database.InitOutboxDB(outboxDbURL)
 
 	// feature flags (WEBHOOK & WEBSOCKET)
-	wsEnv := strings.ToLower(os.Getenv("HERMESWA_ENABLE_WEBSOCKET_INCOMING_MSG"))
-	webhookEnv := strings.ToLower(os.Getenv("HERMESWA_ENABLE_WEBHOOK"))
+	wsEnv := strings.ToLower(os.Getenv("CHARON_ENABLE_WEBSOCKET_INCOMING_MSG"))
+	webhookEnv := strings.ToLower(os.Getenv("CHARON_ENABLE_WEBHOOK"))
 
 	config.EnableWebsocketIncomingMessage = (wsEnv == "true")
 	config.EnableWebhook = (webhookEnv == "true")
@@ -72,10 +72,10 @@ func main() {
 	}
 
 	// Typing Delay Configuration (read once at startup)
-	if v, err := strconv.Atoi(os.Getenv("HERMESWA_TYPING_DELAY_MIN")); err == nil && v > 0 {
+	if v, err := strconv.Atoi(os.Getenv("CHARON_TYPING_DELAY_MIN")); err == nil && v > 0 {
 		config.TypingDelayMin = v
 	}
-	if v, err := strconv.Atoi(os.Getenv("HERMESWA_TYPING_DELAY_MAX")); err == nil && v > 0 {
+	if v, err := strconv.Atoi(os.Getenv("CHARON_TYPING_DELAY_MAX")); err == nil && v > 0 {
 		config.TypingDelayMax = v
 	}
 

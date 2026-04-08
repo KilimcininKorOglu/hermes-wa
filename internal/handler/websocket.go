@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"hermeswa/internal/model"
-	"hermeswa/internal/service"
-	"hermeswa/internal/ws"
+	"charon/internal/model"
+	"charon/internal/service"
+	"charon/internal/ws"
 
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"

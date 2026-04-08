@@ -1,8 +1,8 @@
 package model
 
 import (
+	"charon/database"
 	"fmt"
-	"hermeswa/database"
 )
 
 func UpdateInstanceWebhook(instanceID, url, secret string) error {

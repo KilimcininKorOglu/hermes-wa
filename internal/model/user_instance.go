@@ -7,7 +7,7 @@ import (
 	"errors"
 	"time"
 
-	"hermeswa/database"
+	"charon/database"
 )
 
 // UserInstance represents the relationship between a user and an instance

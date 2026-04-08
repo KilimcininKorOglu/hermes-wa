@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"hermeswa/internal/model"
-	warmingModel "hermeswa/internal/model/warming"
+	"charon/internal/model"
+	warmingModel "charon/internal/model/warming"
 )
 
 var (

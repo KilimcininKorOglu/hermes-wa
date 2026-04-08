@@ -1,10 +1,10 @@
 package handler
 
 import (
+	"charon/internal/helper"
+	"charon/internal/model"
+	"charon/internal/service"
 	"database/sql"
-	"hermeswa/internal/helper"
-	"hermeswa/internal/model"
-	"hermeswa/internal/service"
 	"net/http"
 	"strconv"
 

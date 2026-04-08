@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"hermeswa/database"
+	"charon/database"
 )
 
 // AuditLog represents an audit trail entry for security and compliance

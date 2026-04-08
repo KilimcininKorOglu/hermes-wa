@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"hermeswa/internal/helper"
-	"hermeswa/internal/service"
+	"charon/internal/helper"
+	"charon/internal/service"
 
 	"github.com/labstack/echo/v4"
 	"github.com/xuri/excelize/v2"

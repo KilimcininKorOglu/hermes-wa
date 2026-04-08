@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"hermeswa/config"
+	"charon/config"
 
 	"google.golang.org/genai"
 )

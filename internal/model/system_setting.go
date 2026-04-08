@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"hermeswa/database"
+	"charon/database"
 )
 
 type SystemIdentity struct {

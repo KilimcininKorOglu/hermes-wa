@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"hermeswa/database"
+	"charon/database"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -389,7 +389,7 @@ func SeedAdminUser() error {
 
 	admin := &User{
 		Username:      "admin",
-		Email:         "admin@hermeswa.local",
+		Email:         "admin@charon.local",
 		PasswordHash:  sql.NullString{String: hashedPassword, Valid: true},
 		FullName:      sql.NullString{String: "System Administrator", Valid: true},
 		AuthProvider:  "local",

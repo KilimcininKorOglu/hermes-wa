@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"hermeswa/internal/helper"
-	"hermeswa/internal/model"
+	"charon/internal/helper"
+	"charon/internal/model"
 
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"

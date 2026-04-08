@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"log"
 
-	"hermeswa/database"
+	"charon/database"
 )
 
 func InitCustomSchema() {

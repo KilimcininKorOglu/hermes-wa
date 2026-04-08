@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"hermeswa/database"
-	"hermeswa/internal/service/ai"
+	"charon/database"
+	"charon/internal/service/ai"
 
 	"github.com/google/uuid"
 )

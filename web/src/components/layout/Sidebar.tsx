@@ -57,7 +57,7 @@ export function Sidebar() {
       {/* Logo */}
       <div className="px-4 py-5 border-b border-border">
         <h1 className="text-lg font-bold text-cyber-green tracking-wider">
-          HERMES<span className="text-cyber-green-dim">WA</span>
+          Charon
         </h1>
         <p className="text-[10px] text-cyber-green-muted mt-0.5 uppercase tracking-widest">
           WhatsApp Automation

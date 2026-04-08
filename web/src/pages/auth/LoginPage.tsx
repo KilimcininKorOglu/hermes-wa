@@ -32,7 +32,7 @@ export function LoginPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-cyber-green tracking-wider">
-            HERMES<span className="text-cyber-green-dim">WA</span>
+            Charon
           </h1>
           <p className="text-xs text-cyber-green-muted mt-2 uppercase tracking-[0.3em]">
             Authentication Required

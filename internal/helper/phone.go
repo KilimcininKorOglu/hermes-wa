@@ -8,7 +8,7 @@ import (
 
 	"go.mau.fi/whatsmeow/types"
 
-	"hermeswa/config"
+	"charon/config"
 )
 
 // FormatPhoneNumber converts a phone number string to a WhatsApp JID.

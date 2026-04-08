@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"hermeswa/database"
+	"charon/database"
 )
 
 type OutboxMessage struct {

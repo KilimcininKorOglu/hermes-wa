@@ -3,7 +3,7 @@
 ## [1.2.4] - 2026-04-04
 
 ### Fixed
-- Set correct browser tab title (was showing "web" instead of "Hermes WA")
+- Set correct browser tab title (was showing "web" instead of "Charon")
 
 ## [1.2.3] - 2026-04-04
 
@@ -151,6 +151,6 @@
 ### Changed
 - Replaced chai2010/webp (abandoned) with vegidio/webp-go (active, bundled static libs)
 - Removed MySQL support, PostgreSQL-only for all databases
-- Adapted build tooling from btk-sorgu to hermeswa project
+- Adapted build tooling from btk-sorgu to charon project
 - Docker volumes use docker-data/ bind mounts instead of named volumes
 - README rewritten with professional emoji-free design

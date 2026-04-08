@@ -33,7 +33,7 @@ export function RegisterPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-cyber-green tracking-wider">
-            HERMES<span className="text-cyber-green-dim">WA</span>
+            Charon
           </h1>
           <p className="text-xs text-cyber-green-muted mt-2 uppercase tracking-[0.3em]">
             New Agent Registration
@@ -61,7 +61,7 @@ export function RegisterPage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="agent@hermeswa.io"
+            placeholder="agent@charon.dev"
             required
           />
           <Input

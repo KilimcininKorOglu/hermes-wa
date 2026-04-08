@@ -8,7 +8,7 @@ import (
 	"errors"
 	"time"
 
-	"hermeswa/database"
+	"charon/database"
 )
 
 // RefreshToken represents a refresh token for maintaining user sessions

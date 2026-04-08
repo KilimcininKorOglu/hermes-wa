@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	"hermeswa/config"
+	"charon/config"
 
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/types"

@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"hermeswa/internal/helper"
-	"hermeswa/internal/model"
+	"charon/internal/helper"
+	"charon/internal/model"
 )
 
 // Webhook config struct with TTL
@@ -110,7 +110,7 @@ func SendIncomingMessageWebhook(instanceID string, data map[string]interface{}) 
 		mac.Write(body)
 		signature := hex.EncodeToString(mac.Sum(nil))
 
-		req.Header.Set("X-HERMESWA-Signature", signature)
+		req.Header.Set("X-Charon-Signature", signature)
 	}
 
 	client := &http.Client{

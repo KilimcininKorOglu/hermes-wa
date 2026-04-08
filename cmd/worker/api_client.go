@@ -15,7 +15,7 @@ type InstanceInfo struct {
 	PhoneNumber string `json:"phoneNumber"`
 }
 
-type HermeswaClient struct {
+type CharonClient struct {
 	BaseURL      string
 	Username     string
 	Password     string
@@ -53,15 +53,15 @@ type APIResponse struct {
 	} `json:"data"`
 }
 
-func NewHermeswaClient(baseURL, username, password string) *HermeswaClient {
-	return &HermeswaClient{
+func NewCharonClient(baseURL, username, password string) *CharonClient {
+	return &CharonClient{
 		BaseURL:  baseURL,
 		Username: username,
 		Password: password,
 	}
 }
 
-func (c *HermeswaClient) EnsureAuth() error {
+func (c *CharonClient) EnsureAuth() error {
 	c.authMu.Lock()
 	defer c.authMu.Unlock()
 
@@ -77,7 +77,7 @@ func (c *HermeswaClient) EnsureAuth() error {
 	return nil
 }
 
-func (c *HermeswaClient) login() error {
+func (c *CharonClient) login() error {
 	payload, _ := json.Marshal(map[string]string{
 		"username": c.Username,
 		"password": c.Password,
@@ -105,7 +105,7 @@ func (c *HermeswaClient) login() error {
 	return nil
 }
 
-func (c *HermeswaClient) refresh() error {
+func (c *CharonClient) refresh() error {
 	payload, _ := json.Marshal(map[string]string{
 		"refresh_token": c.RefreshToken,
 	})
@@ -134,13 +134,13 @@ func (c *HermeswaClient) refresh() error {
 	return nil
 }
 
-func (c *HermeswaClient) getToken() string {
+func (c *CharonClient) getToken() string {
 	c.authMu.Lock()
 	defer c.authMu.Unlock()
 	return c.AccessToken
 }
 
-func (c *HermeswaClient) GetInstances(circle string) ([]InstanceInfo, error) {
+func (c *CharonClient) GetInstances(circle string) ([]InstanceInfo, error) {
 	c.mu.RLock()
 	if c.allInstancesCache != nil && time.Now().Before(c.cacheExpiry) {
 		// Use cache
@@ -198,7 +198,7 @@ func (c *HermeswaClient) GetInstances(circle string) ([]InstanceInfo, error) {
 	return instances, nil
 }
 
-func (c *HermeswaClient) SendMessage(instanceID, to, message string) (bool, string, error) {
+func (c *CharonClient) SendMessage(instanceID, to, message string) (bool, string, error) {
 	if err := c.EnsureAuth(); err != nil {
 		return false, "", err
 	}
@@ -229,7 +229,7 @@ func (c *HermeswaClient) SendMessage(instanceID, to, message string) (bool, stri
 	return res.Success, res.Message, nil
 }
 
-func (c *HermeswaClient) SendGroupMessage(instanceID, groupID, message string) (bool, string, error) {
+func (c *CharonClient) SendGroupMessage(instanceID, groupID, message string) (bool, string, error) {
 	if err := c.EnsureAuth(); err != nil {
 		return false, "", err
 	}
@@ -260,7 +260,7 @@ func (c *HermeswaClient) SendGroupMessage(instanceID, groupID, message string) (
 	return res.Success, res.Message, nil
 }
 
-func (c *HermeswaClient) SendMediaURL(instanceID, to, mediaURL, caption string) (bool, string, error) {
+func (c *CharonClient) SendMediaURL(instanceID, to, mediaURL, caption string) (bool, string, error) {
 	if err := c.EnsureAuth(); err != nil {
 		return false, "", err
 	}
@@ -292,7 +292,7 @@ func (c *HermeswaClient) SendMediaURL(instanceID, to, mediaURL, caption string) 
 	return res.Success, res.Message, nil
 }
 
-func (c *HermeswaClient) SendGroupMediaURL(instanceID, groupID, mediaURL, caption string) (bool, string, error) {
+func (c *CharonClient) SendGroupMediaURL(instanceID, groupID, mediaURL, caption string) (bool, string, error) {
 	if err := c.EnsureAuth(); err != nil {
 		return false, "", err
 	}

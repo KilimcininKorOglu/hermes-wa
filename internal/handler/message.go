@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
-	"hermeswa/internal/helper"
-	"hermeswa/internal/service"
+	"charon/internal/helper"
+	"charon/internal/service"
 
-	"hermeswa/internal/model"
+	"charon/internal/model"
 
 	"github.com/labstack/echo/v4"
 	"go.mau.fi/whatsmeow/proto/waE2E"

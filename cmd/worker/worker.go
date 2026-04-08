@@ -17,19 +17,19 @@ import (
 	"sync"
 	"time"
 
-	"hermeswa/internal/helper"
+	"charon/internal/helper"
 )
 
 type WorkerInstance struct {
 	config  WorkerConfig
-	client  *HermeswaClient
+	client  *CharonClient
 	ctx     context.Context
 	cancel  context.CancelFunc
 	counter int // Round-robin counter
 	wg      sync.WaitGroup
 }
 
-func NewWorkerInstance(config WorkerConfig, client *HermeswaClient) *WorkerInstance {
+func NewWorkerInstance(config WorkerConfig, client *CharonClient) *WorkerInstance {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &WorkerInstance{
 		config: config,
@@ -258,7 +258,7 @@ func (w *WorkerInstance) sendWebhook(msg *OutboxMessage, status int, statusText 
 		mac := hmac.New(sha256.New, []byte(secret))
 		mac.Write(body)
 		signature := hex.EncodeToString(mac.Sum(nil))
-		req.Header.Set("X-HERMESWA-Signature", signature)
+		req.Header.Set("X-Charon-Signature", signature)
 		log.Printf("[%s] Webhook signature generated: %s", w.config.WorkerName, signature)
 	}
 

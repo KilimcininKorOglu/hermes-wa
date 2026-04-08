@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"hermeswa/database"
+	"charon/database"
 )
 
 // TokenBlacklist represents a blacklisted access token

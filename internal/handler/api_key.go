@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"hermeswa/internal/model"
+	"charon/internal/model"
 
 	"github.com/labstack/echo/v4"
 )

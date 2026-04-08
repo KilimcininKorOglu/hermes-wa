@@ -3,7 +3,7 @@ package model
 import (
 	"fmt"
 
-	"hermeswa/database"
+	"charon/database"
 )
 
 // AdminStats holds dashboard statistics

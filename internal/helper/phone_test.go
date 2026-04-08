@@ -3,7 +3,7 @@ package helper
 import (
 	"testing"
 
-	"hermeswa/config"
+	"charon/config"
 )
 
 func TestExtractPhoneFromJID(t *testing.T) {

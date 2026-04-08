@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"hermeswa/internal/helper"
-	warmingModel "hermeswa/internal/model/warming"
-	"hermeswa/internal/service"
-	"hermeswa/internal/ws"
+	"charon/internal/helper"
+	warmingModel "charon/internal/model/warming"
+	"charon/internal/service"
+	"charon/internal/ws"
 )
 
 // StartWarmingWorker runs the warming worker in background

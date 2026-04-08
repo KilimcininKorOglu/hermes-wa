@@ -1,10 +1,10 @@
 package model
 
 import (
+	"charon/database"
 	"database/sql"
 	"errors"
 	"fmt"
-	"hermeswa/database"
 	"log"
 	"time"
 )

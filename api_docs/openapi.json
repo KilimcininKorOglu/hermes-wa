@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "HERMESWA - WhatsApp Multi-Instance API",
+    "title": "Charon - WhatsApp Multi-Instance API",
     "description": "REST API for WhatsApp Web automation, multi-instance management, and real-time messaging built with Go, Echo framework, and whatsmeow library.",
     "version": "1.0.0"
   },
@@ -1334,7 +1334,7 @@
               },
               "example": {
                 "to": "905123456789",
-                "message": "Hello from HERMESWA!"
+                "message": "Hello from Charon!"
               }
             }
           }
@@ -1483,7 +1483,7 @@
               },
               "example": {
                 "to": "905123456789",
-                "message": "Hello from HERMESWA!"
+                "message": "Hello from Charon!"
               }
             }
           }

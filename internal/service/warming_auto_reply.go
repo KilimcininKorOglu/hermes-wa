@@ -9,11 +9,11 @@ import (
 	"sync"
 	"time"
 
-	"hermeswa/config"
-	"hermeswa/internal/helper"
-	warmingModel "hermeswa/internal/model/warming"
-	"hermeswa/internal/service/ai"
-	"hermeswa/internal/ws"
+	"charon/config"
+	"charon/internal/helper"
+	warmingModel "charon/internal/model/warming"
+	"charon/internal/service/ai"
+	"charon/internal/ws"
 
 	"go.mau.fi/whatsmeow/types"
 )

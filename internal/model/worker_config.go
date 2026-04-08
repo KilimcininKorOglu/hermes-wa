@@ -1,9 +1,9 @@
 package model
 
 import (
+	"charon/database"
 	"context"
 	"database/sql"
-	"hermeswa/database"
 	"time"
 )
 

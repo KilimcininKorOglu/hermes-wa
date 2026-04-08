@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	warmingModel "hermeswa/internal/model/warming"
+	warmingModel "charon/internal/model/warming"
 )
 
 var (

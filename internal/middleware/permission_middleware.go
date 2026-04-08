@@ -3,8 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"hermeswa/internal/model"
-	"hermeswa/internal/service"
+	"charon/internal/model"
+	"charon/internal/service"
 
 	"github.com/labstack/echo/v4"
 )

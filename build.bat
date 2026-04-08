@@ -25,7 +25,7 @@ goto %~1
 
 :build-api
     if not exist %BUILD_DIR% mkdir %BUILD_DIR%
-    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\hermeswa.exe .
+    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\charon.exe .
     goto end
 
 :build-worker
@@ -41,12 +41,12 @@ goto %~1
     set GOARCH=amd64
     set CC=zig cc -target x86_64-linux
     set CXX=zig c++ -target x86_64-linux
-    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\hermeswa_linux_amd64 .
+    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\charon_linux_amd64 .
     go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\worker_linux_amd64 ./cmd/worker/
     set GOARCH=arm64
     set CC=zig cc -target aarch64-linux
     set CXX=zig c++ -target aarch64-linux
-    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\hermeswa_linux_arm64 .
+    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\charon_linux_arm64 .
     go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\worker_linux_arm64 ./cmd/worker/
     goto end
 
@@ -55,7 +55,7 @@ goto %~1
     set CGO_ENABLED=1
     set GOOS=windows
     set GOARCH=amd64
-    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\hermeswa_windows_amd64.exe .
+    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\charon_windows_amd64.exe .
     go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\worker_windows_amd64.exe ./cmd/worker/
     goto end
 
@@ -67,12 +67,12 @@ goto %~1
     set GOARCH=amd64
     set CC=zig cc -target x86_64-macos
     set CXX=zig c++ -target x86_64-macos
-    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\hermeswa_darwin_amd64 .
+    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\charon_darwin_amd64 .
     go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\worker_darwin_amd64 ./cmd/worker/
     set GOARCH=arm64
     set CC=zig cc -target aarch64-macos
     set CXX=zig c++ -target aarch64-macos
-    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\hermeswa_darwin_arm64 .
+    go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\charon_darwin_arm64 .
     go build -ldflags "%LDFLAGS%" -o %BUILD_DIR%\worker_darwin_arm64 ./cmd/worker/
     goto end
 
@@ -89,7 +89,7 @@ goto %~1
 
 :run
     call :build-api
-    %BUILD_DIR%\hermeswa.exe
+    %BUILD_DIR%\charon.exe
     goto end
 
 :fmt

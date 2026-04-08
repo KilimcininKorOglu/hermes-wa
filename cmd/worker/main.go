@@ -78,7 +78,7 @@ func main() {
 	}
 
 	// 4. Initialize API Client
-	client := NewHermeswaClient(apiBaseURL, apiUser, apiPass)
+	client := NewCharonClient(apiBaseURL, apiUser, apiPass)
 
 	// 5. Start Worker Manager
 	manager := NewWorkerManager(client)

@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"hermeswa/internal/helper"
-	"hermeswa/internal/model"
-	"hermeswa/internal/service"
+	"charon/internal/helper"
+	"charon/internal/model"
+	"charon/internal/service"
 
 	"github.com/labstack/echo/v4"
 )

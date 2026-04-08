@@ -1,4 +1,4 @@
-# HERMESWA
+# Charon
 
 **WhatsApp Multi-Instance Automation API**
 
@@ -183,19 +183,19 @@ cp .env.example .env
 # Edit .env with your settings
 
 # Start API server
-./bin/hermeswa
+./bin/charon
 
 # Start worker (separate terminal)
 ./bin/worker
 ```
 
-On first startup, if no admin user exists in the database, HERMESWA automatically creates a default admin account with credentials `admin` / `admin123`. Change the password immediately after first login.
+On first startup, if no admin user exists in the database, Charon automatically creates a default admin account with credentials `admin` / `admin123`. Change the password immediately after first login.
 
 ---
 
 ## Authentication
 
-HERMESWA uses JWT-based authentication with access/refresh token pairs. API keys are available for external integrations.
+Charon uses JWT-based authentication with access/refresh token pairs. API keys are available for external integrations.
 
 ### Roles
 
@@ -358,10 +358,10 @@ Configure these in your `.env` file.
 
 | Variable                                 | Description                                 | Default | Example |
 |:-----------------------------------------|:--------------------------------------------|:--------|:--------|
-| `HERMESWA_ENABLE_WEBSOCKET_INCOMING_MSG` | Enable incoming message WebSocket broadcast | `false` | `true`  |
-| `HERMESWA_ENABLE_WEBHOOK`                | Enable global incoming message webhooks     | `false` | `true`  |
-| `HERMESWA_TYPING_DELAY_MIN`              | Minimum typing simulation delay (seconds)   | `1`     | `2`     |
-| `HERMESWA_TYPING_DELAY_MAX`              | Maximum typing simulation delay (seconds)   | `3`     | `5`     |
+| `CHARON_ENABLE_WEBSOCKET_INCOMING_MSG` | Enable incoming message WebSocket broadcast | `false` | `true`  |
+| `CHARON_ENABLE_WEBHOOK`                | Enable global incoming message webhooks     | `false` | `true`  |
+| `CHARON_TYPING_DELAY_MIN`              | Minimum typing simulation delay (seconds)   | `1`     | `2`     |
+| `CHARON_TYPING_DELAY_MAX`              | Maximum typing simulation delay (seconds)   | `3`     | `5`     |
 | `PHONE_COUNTRY_CODE`                     | Country code for phone number formatting    | --      | `90`    |
 | `ALLOW_9_DIGIT_PHONE_NUMBER`             | Skip IsOnWhatsApp check for leading-0, no-cc-prefix, or <10 digit numbers | `false` | `true`  |
 
@@ -464,18 +464,18 @@ The production image uses a 3-stage build (Node frontend + Go backend + Debian r
 
 ```bash
 # Build production image
-docker build -t hermeswa:latest .
+docker build -t charon:latest .
 
 # Run API server
-docker run -d --name hermeswa-api \
+docker run -d --name charon-api \
   --env-file .env \
   -p 2121:2121 \
-  hermeswa:latest
+  charon:latest
 
 # Run worker (same image, different entrypoint)
-docker run -d --name hermeswa-worker \
+docker run -d --name charon-worker \
   --env-file .env \
-  hermeswa:latest ./worker
+  charon:latest ./worker
 ```
 
 ### Cross-compilation
@@ -598,7 +598,7 @@ Content-Type: application/json
 ```json
 {
   "to": "905xxxxxxxxx",
-  "message": "Hello from HERMESWA!"
+  "message": "Hello from Charon!"
 }
 ```
 
@@ -921,11 +921,11 @@ Content-Type: application/json
 }
 ```
 
-When a secret is configured, HERMESWA signs every outgoing webhook using HMAC-SHA256:
+When a secret is configured, Charon signs every outgoing webhook using HMAC-SHA256:
 
 | Detail    | Value                              |
 |:----------|:-----------------------------------|
-| Header    | `X-HERMESWA-Signature`             |
+| Header    | `X-Charon-Signature`             |
 | Algorithm | HMAC-SHA256                        |
 | Message   | Raw HTTP request body              |
 | Key       | Instance-specific `webhook_secret` |
@@ -953,7 +953,7 @@ When the blast outbox worker processes a message, it sends a webhook callback to
 }
 ```
 
-Signed with `X-HERMESWA-Signature` (HMAC-SHA256) if `webhook_secret` is configured.
+Signed with `X-Charon-Signature` (HMAC-SHA256) if `webhook_secret` is configured.
 
 ---
 
@@ -1012,6 +1012,6 @@ This project is intended for educational and research purposes only. Use at your
 
 ---
 
-[![Go Version](https://img.shields.io/github/go-mod/go-version/KilimcininKorOglu/hermes-wa)](https://github.com/KilimcininKorOglu/hermes-wa)
-[![GitHub issues](https://img.shields.io/github/issues/KilimcininKorOglu/hermes-wa)](https://github.com/KilimcininKorOglu/hermes-wa/issues)
-[![GitHub stars](https://img.shields.io/github/stars/KilimcininKorOglu/hermes-wa)](https://github.com/KilimcininKorOglu/hermes-wa)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/KilimcininKorOglu/charon-wa)](https://github.com/KilimcininKorOglu/charon-wa)
+[![GitHub issues](https://img.shields.io/github/issues/KilimcininKorOglu/charon-wa)](https://github.com/KilimcininKorOglu/charon-wa/issues)
+[![GitHub stars](https://img.shields.io/github/stars/KilimcininKorOglu/charon-wa)](https://github.com/KilimcininKorOglu/charon-wa)

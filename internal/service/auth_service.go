@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"time"
 
-	"hermeswa/internal/helper"
-	"hermeswa/internal/model"
+	"charon/internal/helper"
+	"charon/internal/model"
 
 	"github.com/golang-jwt/jwt/v5"
 )

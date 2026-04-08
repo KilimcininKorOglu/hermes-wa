@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	"hermeswa/database"
+	"charon/database"
 )
 
 type APIKey struct {

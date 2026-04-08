@@ -13,10 +13,10 @@ import (
 	"sync"
 	"time"
 
-	"hermeswa/internal/helper"
-	"hermeswa/internal/model"
-	"hermeswa/internal/service"
-	"hermeswa/internal/ws"
+	"charon/internal/helper"
+	"charon/internal/model"
+	"charon/internal/service"
+	"charon/internal/ws"
 
 	"github.com/labstack/echo/v4"
 )

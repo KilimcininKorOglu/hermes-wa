@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"hermeswa/internal/service"
-	"hermeswa/internal/ws"
+	"charon/internal/service"
+	"charon/internal/ws"
 	"log"
 
 	"github.com/labstack/echo/v4"

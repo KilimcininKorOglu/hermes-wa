@@ -34,8 +34,8 @@ jobs:
       - name: Verify binaries
         run: |
           echo "=== Linux amd64 ==="
-          ls -la bin/hermeswa_linux_amd64 bin/worker_linux_amd64
+          ls -la bin/charon_linux_amd64 bin/worker_linux_amd64
           echo "=== Linux arm64 ==="
-          ls -la bin/hermeswa_linux_arm64 bin/worker_linux_arm64
+          ls -la bin/charon_linux_arm64 bin/worker_linux_arm64
           echo "=== Windows amd64 ==="
-          ls -la bin/hermeswa_windows_amd64.exe bin/worker_windows_amd64.exe
+          ls -la bin/charon_windows_amd64.exe bin/worker_windows_amd64.exe

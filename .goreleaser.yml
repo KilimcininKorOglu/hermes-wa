@@ -5,7 +5,7 @@ before:
     - go mod tidy
 
 builds:
-  - id: "hermeswa"
+  - id: "charon"
     env:
       - CGO_ENABLED=1
     goos:
@@ -19,7 +19,7 @@ builds:
       - goos: windows
         goarch: arm64
     main: .
-    binary: hermeswa
+    binary: charon
     ldflags:
       - -s -w -X 'main.version={{.Version}}' -X 'main.commit={{.Commit}}' -X 'main.buildDate={{.Date}}'
 
@@ -42,9 +42,9 @@ builds:
       - -s -w -X 'main.version={{.Version}}' -X 'main.commit={{.Commit}}' -X 'main.buildDate={{.Date}}'
 
 archives:
-  - id: "hermeswa"
+  - id: "charon"
     builds:
-      - hermeswa
+      - charon
       - worker
     name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
     formats:
