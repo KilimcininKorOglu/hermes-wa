@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
-	"time"
 )
 
 // TemplateLine represents a single line in template
@@ -14,11 +13,6 @@ type TemplateLine struct {
 	ActorRole      string   `json:"actorRole"`
 	MessageType    string   `json:"messageType,omitempty"` // QUESTION, ANSWER, ANSWER_AND_QUESTION, STATEMENT
 	MessageOptions []string `json:"messageOptions"`
-}
-
-// Initialize random seed
-func init() {
-	rand.Seed(time.Now().UnixNano())
 }
 
 // GetConversationTemplatesFromDB retrieves templates from database by category
