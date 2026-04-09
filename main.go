@@ -234,9 +234,20 @@ func main() {
 	// PUBLIC ROUTES (No authentication required)
 	// =====================================================
 
+	// Stricter rate limit for auth endpoints (5 requests per minute per IP)
+	authLimiter := middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
+		Store: middleware.NewRateLimiterMemoryStoreWithConfig(
+			middleware.RateLimiterMemoryStoreConfig{
+				Rate:      rate.Limit(5.0 / 60.0),
+				Burst:     5,
+				ExpiresIn: 5 * time.Minute,
+			},
+		),
+	})
+
 	// New user authentication endpoints
-	e.POST("/login", handler.LoginUser)
-	e.POST("/refresh", handler.RefreshToken)
+	e.POST("/login", handler.LoginUser, authLimiter)
+	e.POST("/refresh", handler.RefreshToken, authLimiter)
 
 	// Static file serving for uploaded files — with security headers to prevent MIME sniffing
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
