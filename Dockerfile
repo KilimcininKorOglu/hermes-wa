@@ -54,8 +54,12 @@ COPY --from=frontend /web/dist /app/web/dist
 COPY uploads/ /app/uploads/
 COPY .env.example /app/.env.example
 
-# Create uploads directory for runtime
-RUN mkdir -p /app/uploads/avatars /app/uploads/system
+# Create uploads directory and non-root user
+RUN mkdir -p /app/uploads/avatars /app/uploads/system \
+    && useradd --no-create-home --shell /bin/false charon \
+    && chown -R charon:charon /app
+
+USER charon
 
 EXPOSE 2121
 
