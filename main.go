@@ -165,6 +165,14 @@ func main() {
 
 	// Setup Echo
 	e := echo.New()
+
+	// Configure IP extraction for rate limiting
+	if os.Getenv("BEHIND_PROXY") == "true" {
+		e.IPExtractor = echo.ExtractIPFromRealIPHeader()
+	} else {
+		e.IPExtractor = echo.ExtractIPDirect()
+	}
+
 	// e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
