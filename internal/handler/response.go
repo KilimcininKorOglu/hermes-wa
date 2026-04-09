@@ -30,18 +30,19 @@ func SuccessResponse(c echo.Context, statusCode int, message string, data interf
 
 // Error response helper
 func ErrorResponse(c echo.Context, statusCode int, message string, errorCode string, details string) error {
+	// Log full details server-side only — never expose internal errors to clients
+	log.Println("Error:", message, "| Code:", errorCode, "| Details:", details)
+
 	response := APIResponse{
 		Success: false,
 		Message: message,
 	}
 
-	if errorCode != "" || details != "" {
+	if errorCode != "" {
 		response.Error = &ErrorInfo{
-			Code:    errorCode,
-			Details: details,
+			Code: errorCode,
 		}
 	}
 
-	log.Println("Error:", message, "| Code:", errorCode, "| Details:", details)
 	return c.JSON(statusCode, response)
 }
