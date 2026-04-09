@@ -241,9 +241,7 @@ func (w *WorkerInstance) sendWebhook(msg *OutboxMessage, status int, statusText 
 		return
 	}
 
-	// Log webhook details for debugging
-	log.Printf("[%s] Preparing webhook to URL: %s", w.config.WorkerName, webhookURL)
-	log.Printf("[%s] Webhook payload: %s", w.config.WorkerName, string(body))
+	log.Printf("[%s] Sending webhook to: %s", w.config.WorkerName, webhookURL)
 
 	req, err := http.NewRequest("POST", webhookURL, bytes.NewReader(body))
 	if err != nil {
@@ -259,7 +257,6 @@ func (w *WorkerInstance) sendWebhook(msg *OutboxMessage, status int, statusText 
 		mac.Write(body)
 		signature := hex.EncodeToString(mac.Sum(nil))
 		req.Header.Set("X-Charon-Signature", signature)
-		log.Printf("[%s] Webhook signature generated: %s", w.config.WorkerName, signature)
 	}
 
 	client := &http.Client{
