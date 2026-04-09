@@ -175,6 +175,7 @@ func main() {
 
 	// e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.Use(middleware.BodyLimit("100M"))
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		XFrameOptions:         "DENY",
 		ContentSecurityPolicy: "frame-ancestors 'none'",
