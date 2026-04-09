@@ -5,9 +5,13 @@ import { globalWs } from "../lib/ws"
 
 // In-memory only — not stored in localStorage to prevent XSS exfiltration
 let refreshTokenMemory: string | null = null
+let accessTokenMemory: string | null = null
 
 export function getRefreshToken() { return refreshTokenMemory }
 export function setRefreshToken(token: string | null) { refreshTokenMemory = token }
+
+export function getAccessToken() { return accessTokenMemory }
+export function setAccessToken(token: string | null) { accessTokenMemory = token }
 
 interface AuthState {
   user: User | null
@@ -23,14 +27,14 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  isAuthenticated: !!localStorage.getItem("access_token"),
+  isAuthenticated: !!accessTokenMemory,
   isLoading: false,
 
   login: async (username, password) => {
     const res = await api.post<ApiResponse<AuthResponse>>("/login", { username, password })
     if (res.data.success && res.data.data) {
       const { access_token, refresh_token, user } = res.data.data
-      localStorage.setItem("access_token", access_token)
+      setAccessToken(access_token)
       setRefreshToken(refresh_token)
       set({ user, isAuthenticated: true })
     } else {
@@ -47,7 +51,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     })
     if (res.data.success && res.data.data) {
       const { access_token, refresh_token, user } = res.data.data
-      localStorage.setItem("access_token", access_token)
+      setAccessToken(access_token)
       setRefreshToken(refresh_token)
       set({ user, isAuthenticated: true })
     } else {
@@ -62,7 +66,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch {
       // Ignore logout errors
     }
-    localStorage.removeItem("access_token")
+    setAccessToken(null)
     setRefreshToken(null)
     globalWs.disconnect()
     set({ user: null, isAuthenticated: false })
@@ -76,7 +80,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({ user: res.data.data, isAuthenticated: true })
       }
     } catch {
-      localStorage.removeItem("access_token")
+      setAccessToken(null)
       setRefreshToken(null)
       set({ user: null, isAuthenticated: false })
     } finally {

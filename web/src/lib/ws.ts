@@ -1,5 +1,6 @@
 import type { WsEvent } from "./types"
 import api from "./api"
+import { getAccessToken } from "../stores/authStore"
 
 type WsHandler = (event: WsEvent) => void
 
@@ -84,7 +85,7 @@ class WebSocketClient {
   private scheduleReconnect() {
     if (this.reconnectTimer) return
     // Don't reconnect if user is not authenticated
-    if (!localStorage.getItem("access_token")) return
+    if (!getAccessToken()) return
     // Exponential backoff: 3s, 6s, 12s, 24s, max 30s
     const delay = Math.min(3000 * Math.pow(2, this.reconnectAttempts), 30000)
     this.reconnectAttempts++

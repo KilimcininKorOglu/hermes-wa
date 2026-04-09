@@ -1,6 +1,6 @@
 import axios from "axios"
 import type { ApiResponse } from "./types"
-import { getRefreshToken, setRefreshToken } from "../stores/authStore"
+import { getAccessToken, setAccessToken, getRefreshToken, setRefreshToken } from "../stores/authStore"
 
 const api = axios.create({
   baseURL: "/",
@@ -9,7 +9,7 @@ const api = axios.create({
 
 // Request interceptor: attach JWT token
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token")
+  const token = getAccessToken()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -31,7 +31,7 @@ api.interceptors.response.use(
             { refresh_token: refreshToken }
           )
           if (res.data.success && res.data.data) {
-            localStorage.setItem("access_token", res.data.data.access_token)
+            setAccessToken(res.data.data.access_token)
             if (res.data.data.refresh_token) {
               setRefreshToken(res.data.data.refresh_token)
             }
@@ -39,7 +39,7 @@ api.interceptors.response.use(
             return api(original)
           }
         } catch {
-          localStorage.removeItem("access_token")
+          setAccessToken(null)
           setRefreshToken(null)
           window.location.href = "/login"
         }
