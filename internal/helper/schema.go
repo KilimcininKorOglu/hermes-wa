@@ -498,6 +498,32 @@ func InitCustomSchema() {
 		log.Println("✅ WebSocket tickets table created successfully")
 	}
 
+	// =====================================================
+	// AUTH SESSIONS TABLE (cookie-based session auth)
+	// =====================================================
+	authSessionsSchema := `
+		CREATE TABLE IF NOT EXISTS sessions (
+			id BIGSERIAL PRIMARY KEY,
+			session_id VARCHAR(64) UNIQUE NOT NULL,
+			user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+			username VARCHAR(100) NOT NULL,
+			role VARCHAR(20) NOT NULL,
+			ip_address VARCHAR(45),
+			user_agent TEXT,
+			created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+			expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+			last_active_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+		);
+		CREATE INDEX IF NOT EXISTS idx_sessions_session_id ON sessions(session_id);
+		CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+		CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
+	`
+	if _, err := db.Exec(authSessionsSchema); err != nil {
+		log.Printf("⚠️ Warning: Could not create sessions table: %v", err)
+	} else {
+		log.Println("✅ Auth sessions table created successfully")
+	}
+
 	// Add created_by columns to warming tables for RBAC (NOW users table exists)
 	_, err = db.Exec(`
 		-- Add created_by to warming_scripts
