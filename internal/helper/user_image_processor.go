@@ -1,3 +1,5 @@
+//go:build cgo
+
 // internal/helper/image_processor.go
 package helper
 
