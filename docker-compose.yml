@@ -1,6 +1,6 @@
 services:
   db-init:
-    image: postgres:17-alpine
+    image: postgres:17.4-alpine3.21
     restart: "no"
     environment:
       DB_INIT_URL: ${DB_INIT_URL}

@@ -1,7 +1,7 @@
 # ============================================
 # Stage 1: Frontend Build
 # ============================================
-FROM node:22-alpine AS frontend
+FROM node:22.15.0-alpine3.21 AS frontend
 
 WORKDIR /web
 COPY web/package.json web/package-lock.json ./
@@ -12,7 +12,7 @@ RUN npm run build
 # ============================================
 # Stage 2: Go Build
 # ============================================
-FROM golang:1.24-bookworm AS builder
+FROM golang:1.24.3-bookworm AS builder
 
 WORKDIR /src
 
@@ -35,7 +35,7 @@ RUN go build -ldflags "-s -w" -o /out/worker ./cmd/worker/
 # ============================================
 # Stage 3: Runtime
 # ============================================
-FROM debian:bookworm-slim
+FROM debian:bookworm-20250317-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl \
