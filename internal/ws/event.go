@@ -24,6 +24,10 @@ type WsEvent struct {
 	Event     string      `json:"event"`     // Event name, one of the constants above
 	Timestamp time.Time   `json:"timestamp"` // Time event was created (UTC)
 	Data      interface{} `json:"data"`      // Event-specific payload
+
+	// InstanceID is used for server-side routing only — not serialized to JSON.
+	// Set by Publish callers to enable user-scoped event filtering.
+	InstanceID string `json:"-"`
 }
 
 // =====================

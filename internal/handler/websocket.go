@@ -78,7 +78,7 @@ func WebSocketHandler(hub *ws.Hub) echo.HandlerFunc {
 			return err
 		}
 
-		client := ws.NewClient(hub, conn)
+		client := ws.NewClient(hub, conn, int(claims.UserID), claims.Role == "admin")
 		hub.Register(client)
 
 		go client.WritePump()

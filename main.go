@@ -163,6 +163,15 @@ func main() {
 
 	service.Realtime = hub
 
+	// Configure WebSocket broadcast filtering by user instance access
+	ws.SetInstanceAccessChecker(func(userID int, instanceID string) bool {
+		hasAccess, err := model.HasInstanceAccess(userID, instanceID)
+		if err != nil {
+			return false
+		}
+		return hasAccess
+	})
+
 	// Setup Echo
 	e := echo.New()
 

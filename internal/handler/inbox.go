@@ -43,7 +43,9 @@ func ListenMessages(hub *ws.Hub) echo.HandlerFunc {
 		}
 
 		// Create client and register
-		client := ws.NewClient(hub, conn)
+		userID, _ := c.Get("user_id").(int)
+		role, _ := c.Get("role").(string)
+		client := ws.NewClient(hub, conn, userID, role == "admin")
 		client.InstanceID = instanceID
 
 		hub.Register(client)

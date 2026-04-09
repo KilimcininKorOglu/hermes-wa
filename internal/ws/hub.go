@@ -18,10 +18,9 @@ type Client struct {
 	// Write goroutine reads from here and sends to conn.
 	send chan WsEvent
 
-	// (Optional) identity info for future filtering,
-	// e.g. UserID / TenantID / list of subscribed InstanceIDs.
-	// Can be left empty for initial version.
-	// UserID string
+	// User identity from JWT for event filtering
+	UserID  int
+	IsAdmin bool
 
 	InstanceID string
 }
@@ -76,6 +75,10 @@ func (h *Hub) Run() {
 		case event := <-h.broadcast:
 			h.mu.RLock()
 			for client := range h.clients {
+				// Filter events by user access
+				if !h.shouldDeliverEvent(client, event) {
+					continue
+				}
 				select {
 				case client.send <- event:
 					// successfully sent to client buffer
@@ -102,12 +105,44 @@ func (h *Hub) Unregister(client *Client) {
 
 // Publish implements RealtimePublisher.
 // Other services just call this to send events to all clients.
+// The InstanceID is auto-extracted from event Data for access filtering.
 func (h *Hub) Publish(event WsEvent) {
 	// Ensure timestamp is set if not already.
 	if event.Timestamp.IsZero() {
 		event.Timestamp = time.Now().UTC()
 	}
+	// Auto-extract InstanceID from Data if not explicitly set
+	if event.InstanceID == "" {
+		event.InstanceID = extractInstanceID(event.Data)
+	}
 	h.broadcast <- event
+}
+
+// InstanceAccessChecker is a callback to verify user→instance access.
+// Set by main to avoid circular dependency between ws and model packages.
+type InstanceAccessChecker func(userID int, instanceID string) bool
+
+// instanceAccessChecker is the global checker set at startup.
+var instanceAccessChecker InstanceAccessChecker
+
+// SetInstanceAccessChecker configures the access checker used for broadcast filtering.
+func SetInstanceAccessChecker(checker InstanceAccessChecker) {
+	instanceAccessChecker = checker
+}
+
+// shouldDeliverEvent determines if a client should receive this event.
+// Admins receive everything. Non-admin users only get events for their instances.
+func (h *Hub) shouldDeliverEvent(client *Client, event WsEvent) bool {
+	if client.IsAdmin {
+		return true
+	}
+	if event.InstanceID == "" {
+		return true // Events without instance scope go to everyone
+	}
+	if instanceAccessChecker != nil {
+		return instanceAccessChecker(client.UserID, event.InstanceID)
+	}
+	return false // Deny by default if no checker is configured
 }
 
 // RealtimePublisher is the interface held by other services
@@ -118,13 +153,13 @@ type RealtimePublisher interface {
 }
 
 // NewClient creates a new Client object from a Gorilla WebSocket connection.
-// This function does not start read/write goroutines; that's the WS handler's job.
-// NewClient creates a new Client object from a Gorilla WebSocket connection.
-func NewClient(hub *Hub, conn *websocket.Conn) *Client {
+func NewClient(hub *Hub, conn *websocket.Conn, userID int, isAdmin bool) *Client {
 	return &Client{
 		hub:        hub,
 		conn:       conn,
 		send:       make(chan WsEvent, 256),
+		UserID:     userID,
+		IsAdmin:    isAdmin,
 		InstanceID: "", // default empty, will be set from handler
 	}
 }
@@ -201,6 +236,28 @@ func (c *Client) ReadPump() {
 			break
 		}
 	}
+}
+
+// extractInstanceID tries to pull an instance_id from the event data.
+// Supports typed event payloads and generic map[string]interface{}.
+func extractInstanceID(data interface{}) string {
+	switch d := data.(type) {
+	case QRGeneratedData:
+		return d.InstanceID
+	case QRExpiredData:
+		return d.InstanceID
+	case InstanceStatusChangedData:
+		return d.InstanceID
+	case InstanceErrorData:
+		return d.InstanceID
+	case WarmingMessageData:
+		return d.SenderInstanceID
+	case map[string]interface{}:
+		if id, ok := d["instance_id"].(string); ok {
+			return id
+		}
+	}
+	return ""
 }
 
 // BroadcastToInstance sends a message to clients listening to a specific instance

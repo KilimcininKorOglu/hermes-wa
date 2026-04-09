@@ -121,6 +121,18 @@ func CheckUserInstancePermission(userID int64, instanceID string) (string, error
 	return permissionLevel, nil
 }
 
+// HasInstanceAccess checks if a user has any access to an instance
+func HasInstanceAccess(userID int, instanceID string) (bool, error) {
+	_, err := CheckUserInstancePermission(int64(userID), instanceID)
+	if err == ErrNoPermission {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // RemoveUserInstance removes a user's access to an instance
 func RemoveUserInstance(userID int64, instanceID string) error {
 	db := database.AppDB
