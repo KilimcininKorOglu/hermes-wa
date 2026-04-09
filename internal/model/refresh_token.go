@@ -3,13 +3,21 @@ package model
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"time"
 
 	"charon/database"
 )
+
+// hashToken hashes a raw token using SHA-256 before DB storage/lookup
+func hashToken(token string) string {
+	hash := sha256.Sum256([]byte(token))
+	return fmt.Sprintf("%x", hash)
+}
 
 // RefreshToken represents a refresh token for maintaining user sessions
 type RefreshToken struct {
@@ -52,7 +60,7 @@ func CreateRefreshToken(rt *RefreshToken) error {
 	err := db.QueryRow(
 		query,
 		rt.UserID,
-		rt.Token,
+		hashToken(rt.Token),
 		rt.ExpiresAt,
 		rt.IPAddress,
 		rt.UserAgent,
@@ -72,7 +80,7 @@ func GetRefreshToken(token string) (*RefreshToken, error) {
 	`
 
 	rt := &RefreshToken{}
-	err := db.QueryRow(query, token).Scan(
+	err := db.QueryRow(query, hashToken(token)).Scan(
 		&rt.ID,
 		&rt.UserID,
 		&rt.Token,
@@ -123,7 +131,7 @@ func GetAndRevokeRefreshToken(tokenStr string) (*RefreshToken, error) {
 	`
 
 	rt := &RefreshToken{}
-	err = tx.QueryRow(query, tokenStr).Scan(
+	err = tx.QueryRow(query, hashToken(tokenStr)).Scan(
 		&rt.ID, &rt.UserID, &rt.Token, &rt.ExpiresAt, &rt.CreatedAt,
 		&rt.Revoked, &rt.IPAddress, &rt.UserAgent,
 	)
@@ -162,7 +170,7 @@ func RevokeRefreshToken(token string) error {
 
 	query := `UPDATE refresh_tokens SET revoked = true WHERE token = $1`
 
-	result, err := db.Exec(query, token)
+	result, err := db.Exec(query, hashToken(token))
 	if err != nil {
 		return err
 	}
