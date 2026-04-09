@@ -154,13 +154,6 @@ func LoginUser(c echo.Context) error {
 	})
 }
 
-// RefreshToken is a deprecated stub kept for compile compatibility until Phase 3
-// removes the route from main.go. Session-based auth does not use refresh tokens.
-// POST /refresh
-func RefreshToken(c echo.Context) error {
-	return ErrorResponse(c, http.StatusGone, "Refresh tokens are no longer supported. Use session-based auth.", "DEPRECATED", "")
-}
-
 // LogoutUser handles user logout by destroying the session
 // POST /logout (public route — no middleware, reads cookie directly)
 func LogoutUser(c echo.Context) error {

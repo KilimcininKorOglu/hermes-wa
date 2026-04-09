@@ -39,15 +39,6 @@ func SessionAuthMiddleware() echo.MiddlewareFunc {
 				})
 			}
 
-			// Check if user is still active
-			if blacklisted, _ := model.IsUserBlacklisted(session.UserID); blacklisted {
-				return c.JSON(http.StatusUnauthorized, map[string]interface{}{
-					"success": false,
-					"message": "Account has been disabled",
-					"error":   map[string]string{"code": "ACCOUNT_DISABLED"},
-				})
-			}
-
 			// Async sliding expiry — extend session on each request
 			go func() {
 				if err := model.TouchAuthSession(session.SessionID, service.GetSessionExpiry()); err != nil {
