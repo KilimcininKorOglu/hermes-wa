@@ -26,6 +26,9 @@ func GetAllWarmingLogs(c echo.Context) error {
 			limit = parsedLimit
 		}
 	}
+	if limit < 1 || limit > 500 {
+		limit = 100
+	}
 
 	// Extract user context from JWT
 	userID, ok := c.Get("user_id").(int64)
