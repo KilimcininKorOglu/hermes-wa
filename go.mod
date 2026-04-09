@@ -23,7 +23,7 @@ require (
 require (
 	cloud.google.com/go v0.116.0 // indirect
 	cloud.google.com/go/auth v0.9.3 // indirect
-	cloud.google.com/go/compute/metadata v0.5.0 // indirect
+	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/beeper/argo-go v1.1.2 // indirect
 	github.com/coder/websocket v1.8.14 // indirect
@@ -53,6 +53,6 @@ require (
 	golang.org/x/net v0.49.0 // indirect
 	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/text v0.35.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 // indirect
-	google.golang.org/grpc v1.66.2 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
+	google.golang.org/grpc v1.79.3 // indirect
 )
