@@ -128,14 +128,8 @@ func main() {
 	log.Printf("feature flags -> websocket_incoming_msg: %v, webhook: %v, warming_auto_reply: %v, ai_enabled: %v",
 		config.EnableWebsocketIncomingMessage, config.EnableWebhook, config.WarmingAutoReplyEnabled, config.AIEnabled)
 
-	//jwt secret for new auth system
-	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" || len(jwtSecret) < 32 {
-		log.Fatal("JWT_SECRET must be set and at least 32 characters long")
-	}
-
-	// Initialize authentication service (for new user management)
-	service.InitAuthConfig(jwtSecret)
+	// Initialize session-based authentication
+	service.InitSessionConfig()
 
 	// **************************
 	// Main process
@@ -257,7 +251,7 @@ func main() {
 
 	// New user authentication endpoints
 	e.POST("/login", handler.LoginUser, authLimiter)
-	e.POST("/refresh", handler.RefreshToken, authLimiter)
+	e.POST("/logout", handler.LogoutUser)
 
 	// Static file serving for uploaded files — with security headers to prevent MIME sniffing
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -286,8 +280,8 @@ func main() {
 		})
 	})
 
-	// Route group requiring JWT authentication
-	api := e.Group("/api", customMiddleware.JWTAuthMiddleware())
+	// Route group requiring session authentication
+	api := e.Group("/api", customMiddleware.SessionAuthMiddleware())
 
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
 		code := http.StatusInternalServerError
@@ -315,16 +309,12 @@ func main() {
 		c.JSON(code, response)
 	}
 
-	// WebSocket ticket exchange (JWT required to obtain ticket)
-	api.POST("/ws/ticket", handler.CreateWSTicket)
-
 	// =====================================================
-	// USER PROFILE ROUTES (JWT required)
+	// USER PROFILE ROUTES (session required)
 	// =====================================================
 	api.GET("/me", handler.GetCurrentUser)
 	api.PUT("/me", handler.UpdateCurrentUser)
 	api.PUT("/me/password", handler.ChangePassword)
-	api.POST("/logout", handler.LogoutUser)
 
 	// File upload
 	api.POST("/me/avatar", handler.UploadAvatar)
@@ -350,13 +340,13 @@ func main() {
 	admin.GET("/stats", handler.GetStats)
 
 	// =====================================================
-	// FILE MANAGER ROUTES (JWT required, delete = admin only)
+	// FILE MANAGER ROUTES (session required, delete = admin only)
 	// =====================================================
 	api.GET("/files", handler.ListFiles)
 	api.DELETE("/files", handler.DeleteFile, customMiddleware.RequireAdmin)
 
 	// =====================================================
-	// WHATSAPP INSTANCE ROUTES (JWT required)
+	// WHATSAPP INSTANCE ROUTES (session required)
 	// =====================================================
 
 	// Routes
@@ -368,7 +358,7 @@ func main() {
 	api.DELETE("/qr-cancel/:instanceId", handler.CancelQR, customMiddleware.RequireInstanceAccess())
 
 	// Get all instances (requires authentication, filtered by user role)
-	api.GET("/instances", handler.GetAllInstances) // JWT already applied to 'api' group
+	api.GET("/instances", handler.GetAllInstances) // session already applied to 'api' group
 	// Update instance fields (used, description, circle)
 	api.PATCH("/instances/:instanceId", handler.UpdateInstanceFields, customMiddleware.RequireInstanceAccess())
 
@@ -430,7 +420,7 @@ func main() {
 	blastOutbox.GET("/available-applications", handler.GetAvailableApplications)
 
 	//----------------------------
-	// API KEY MANAGEMENT (JWT protected)
+	// API KEY MANAGEMENT (session protected)
 	//----------------------------
 	apiKeys := api.Group("/api-keys")
 	apiKeys.POST("", handler.CreateAPIKey, customMiddleware.RequireRole("admin", "user"))
@@ -446,7 +436,7 @@ func main() {
 	outbox.GET("/status/:id", handler.GetOutboxStatus)
 	outbox.GET("/messages", handler.ListOutboxMessages)
 
-	// Outbox messages also accessible via JWT (for admin UI)
+	// Outbox messages also accessible via session (for admin UI)
 	api.GET("/outbox/messages", handler.ListOutboxMessages)
 	api.GET("/outbox/status/:id", handler.GetOutboxStatus)
 

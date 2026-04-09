@@ -162,31 +162,29 @@ func RefreshToken(c echo.Context) error {
 }
 
 // LogoutUser handles user logout by destroying the session
-// POST /api/logout
+// POST /logout (public route — no middleware, reads cookie directly)
 func LogoutUser(c echo.Context) error {
-	// Get user from context for audit logging
-	userClaims, _ := c.Get("user_claims").(*service.Claims)
-
-	// Read session cookie and destroy session
+	// Read session cookie, validate for audit logging, then destroy
 	cookie, err := c.Cookie("session")
 	if err == nil && cookie.Value != "" {
+		// Attempt to read session for audit before destroying
+		session, validateErr := model.GetAuthSessionByToken(cookie.Value)
+		if validateErr == nil && session != nil {
+			_ = model.LogAction(&model.AuditLog{
+				UserID:       sql.NullInt64{Int64: session.UserID, Valid: true},
+				Action:       "user.logout",
+				ResourceType: sql.NullString{String: "user", Valid: true},
+				ResourceID:   sql.NullString{String: session.Username, Valid: true},
+				IPAddress:    sql.NullString{String: c.RealIP(), Valid: true},
+				UserAgent:    sql.NullString{String: c.Request().UserAgent(), Valid: true},
+			})
+		}
+
 		if destroyErr := service.DestroySession(cookie.Value); destroyErr != nil {
 			log.Printf("⚠️ Failed to destroy session: %v", destroyErr)
 		}
 	}
 	clearSessionCookie(c)
-
-	// Log logout
-	if userClaims != nil {
-		_ = model.LogAction(&model.AuditLog{
-			UserID:       sql.NullInt64{Int64: userClaims.UserID, Valid: true},
-			Action:       "user.logout",
-			ResourceType: sql.NullString{String: "user", Valid: true},
-			ResourceID:   sql.NullString{String: userClaims.Username, Valid: true},
-			IPAddress:    sql.NullString{String: c.RealIP(), Valid: true},
-			UserAgent:    sql.NullString{String: c.Request().UserAgent(), Valid: true},
-		})
-	}
 
 	return SuccessResponse(c, http.StatusOK, "Logged out successfully", nil)
 }

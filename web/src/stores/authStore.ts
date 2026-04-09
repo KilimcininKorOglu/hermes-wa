@@ -3,16 +3,6 @@ import type { User, AuthResponse, ApiResponse } from "../lib/types"
 import api from "../lib/api"
 import { globalWs } from "../lib/ws"
 
-// In-memory only — not stored in localStorage to prevent XSS exfiltration
-let refreshTokenMemory: string | null = null
-let accessTokenMemory: string | null = null
-
-export function getRefreshToken() { return refreshTokenMemory }
-export function setRefreshToken(token: string | null) { refreshTokenMemory = token }
-
-export function getAccessToken() { return accessTokenMemory }
-export function setAccessToken(token: string | null) { accessTokenMemory = token }
-
 interface AuthState {
   user: User | null
   isAuthenticated: boolean
@@ -27,15 +17,13 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  isAuthenticated: !!accessTokenMemory,
+  isAuthenticated: false,
   isLoading: false,
 
   login: async (username, password) => {
     const res = await api.post<ApiResponse<AuthResponse>>("/login", { username, password })
     if (res.data.success && res.data.data) {
-      const { access_token, refresh_token, user } = res.data.data
-      setAccessToken(access_token)
-      setRefreshToken(refresh_token)
+      const { user } = res.data.data
       set({ user, isAuthenticated: true })
     } else {
       throw new Error(res.data.message)
@@ -50,9 +38,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       full_name: fullName,
     })
     if (res.data.success && res.data.data) {
-      const { access_token, refresh_token, user } = res.data.data
-      setAccessToken(access_token)
-      setRefreshToken(refresh_token)
+      const { user } = res.data.data
       set({ user, isAuthenticated: true })
     } else {
       throw new Error(res.data.message)
@@ -60,14 +46,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: async () => {
-    const refreshToken = getRefreshToken()
     try {
-      await api.post("/api/logout", { refresh_token: refreshToken })
+      await api.post("/logout")
     } catch {
       // Ignore logout errors
     }
-    setAccessToken(null)
-    setRefreshToken(null)
     globalWs.disconnect()
     set({ user: null, isAuthenticated: false })
   },
@@ -80,8 +63,6 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({ user: res.data.data, isAuthenticated: true })
       }
     } catch {
-      setAccessToken(null)
-      setRefreshToken(null)
       set({ user: null, isAuthenticated: false })
     } finally {
       set({ isLoading: false })
