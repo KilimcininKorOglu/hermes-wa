@@ -45,9 +45,22 @@ func processActiveRooms(hub ws.RealtimePublisher) error {
 	}
 
 	for _, room := range rooms {
+		// Acquire a per-room session advisory lock so a parallel worker replica
+		// cannot claim the same row between query and execution.
+		conn, locked, lockErr := warmingModel.TryLockRoom(context.Background(), room.ID)
+		if lockErr != nil {
+			log.Printf("⚠️ Advisory lock error for room %s: %v", room.Name, lockErr)
+			continue
+		}
+		if !locked {
+			// Another worker is already handling this room in this tick.
+			continue
+		}
+
 		if err := executeRoom(room, hub); err != nil {
 			log.Printf("❌ Failed to execute room %s: %v", room.ID, err)
 		}
+		warmingModel.UnlockRoom(conn, room.ID)
 	}
 
 	return nil

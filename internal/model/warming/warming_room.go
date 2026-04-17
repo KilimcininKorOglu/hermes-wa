@@ -2,6 +2,7 @@ package warming
 
 import (
 	"charon/database"
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -642,6 +643,39 @@ func ToWarmingRoomResponse(room WarmingRoom) WarmingRoomResponse {
 	}
 
 	return resp
+}
+
+// TryLockRoom acquires a session-level pg advisory lock for a warming room so
+// concurrent workers cannot execute the same room simultaneously. The returned
+// *sql.Conn MUST be released via UnlockRoom once the critical section is done;
+// leaving it open leaks a pooled connection and holds the advisory lock.
+func TryLockRoom(ctx context.Context, roomID uuid.UUID) (*sql.Conn, bool, error) {
+	conn, err := database.AppDB.Conn(ctx)
+	if err != nil {
+		return nil, false, err
+	}
+
+	var locked bool
+	err = conn.QueryRowContext(ctx, `SELECT pg_try_advisory_lock(hashtext($1)::bigint)`, roomID.String()).Scan(&locked)
+	if err != nil {
+		_ = conn.Close()
+		return nil, false, err
+	}
+	if !locked {
+		_ = conn.Close()
+		return nil, false, nil
+	}
+	return conn, true, nil
+}
+
+// UnlockRoom releases the session-level advisory lock acquired by TryLockRoom
+// and returns the connection to the pool.
+func UnlockRoom(conn *sql.Conn, roomID uuid.UUID) {
+	if conn == nil {
+		return
+	}
+	_, _ = conn.ExecContext(context.Background(), `SELECT pg_advisory_unlock(hashtext($1)::bigint)`, roomID.String())
+	_ = conn.Close()
 }
 
 // GetActiveRoomsForWorker retrieves rooms ready for execution
