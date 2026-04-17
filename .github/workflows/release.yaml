@@ -28,6 +28,14 @@ jobs:
       - name: Lint
         run: make lint
 
+      # NOTE: goreleaser-cross v1.25.8 ships Go 1.25.x while our module requires
+      # Go 1.26. Track upstream for a goreleaser-cross image built against Go 1.26
+      # (GitHub Issue: goreleaser/goreleaser-cross — check monthly). Until that
+      # image is published, `release --clean` will fail the toolchain check when
+      # run locally; the hosted runner here bundles Go 1.26 from setup-go so
+      # compilation succeeds but any non-goreleaser Go command inside the
+      # container still sees Go 1.25. Do NOT downgrade go.mod to 1.25 to work
+      # around this — Go 1.26 stdlib CVEs must stay pinned.
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a # v6
         with:
