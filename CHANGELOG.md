@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.2] - 2026-04-17
+
+### Changed
+- Remove dead `/register` route, `RegisterPage` component, auth store `register` action, and `RegisterRequest` type from the web frontend so the login page no longer links to a non-existent endpoint
+- Drop duplicate outbox GET route registrations in `main.go` to avoid silent last-registration-wins dead code
+- Document the pagination contract, health check endpoint, CORS wildcard rejection, `sslmode=require` defaults, timestamped webhook HMAC, webhook retry/backoff, session absolute cap + touch debounce, logout rate limit, and `/api/login` legacy naming in `README.md`
+- Sync `api_docs/openapi.json` with the actual runtime: document outbox worker, api-keys CRUD, and warming script-line reorder endpoints; add unique `operationId` for every path; mark all endpoints with explicit `deprecated: false` for codegen support
+- Correct the HTTP method recorded in the `ReorderWarmingScriptLines` handler comment
+
 ## [1.3.1] - 2026-04-17
 
 ### Changed
