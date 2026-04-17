@@ -30,6 +30,26 @@ import (
 	"charon/internal/ws"
 )
 
+// Populated via -ldflags at build time (see Makefile). Fallbacks read VERSION at startup.
+var (
+	version   = ""
+	commit    = ""
+	buildDate = ""
+)
+
+func resolveVersion() string {
+	if version != "" {
+		return version
+	}
+	if data, err := os.ReadFile("VERSION"); err == nil {
+		v := strings.TrimSpace(string(data))
+		if v != "" {
+			return v
+		}
+	}
+	return "dev"
+}
+
 func main() {
 
 	// Load .env (ignore error if file doesn't exist, e.g. in production)
@@ -312,10 +332,12 @@ func main() {
 			status = 503
 		}
 		return c.JSON(status, map[string]interface{}{
-			"success": allHealthy,
-			"message": "WhatsApp API is running",
-			"version": "1.0.0",
-			"checks":  checks,
+			"success":    allHealthy,
+			"message":    "WhatsApp API is running",
+			"version":    resolveVersion(),
+			"commit":     commit,
+			"build_date": buildDate,
+			"checks":     checks,
 		})
 	})
 
