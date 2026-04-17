@@ -518,8 +518,15 @@ func main() {
 	log.Printf("Server starting on port %s, baseURL=%s", port, baseURL)
 
 	// Bind to all interfaces, not just 127.0.0.1
+	srv := &http.Server{
+		Addr:              ":" + port,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      60 * time.Second,
+		IdleTimeout:       120 * time.Second,
+	}
 	go func() {
-		if err := e.Start(":" + port); err != nil && err != http.ErrServerClosed {
+		if err := e.StartServer(srv); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("API server failed: %v", err)
 		}
 	}()
