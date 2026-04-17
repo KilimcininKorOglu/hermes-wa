@@ -4183,162 +4183,6 @@
         ]
       }
     },
-    "/register": {
-      "post": {
-        "summary": "Add",
-        "deprecated": false,
-        "description": "",
-        "tags": [
-          "User"
-        ],
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "username": {
-                    "type": "string"
-                  },
-                  "email": {
-                    "type": "string"
-                  },
-                  "password": {
-                    "type": "string"
-                  },
-                  "full_name": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "username",
-                  "email",
-                  "password",
-                  "full_name"
-                ]
-              },
-              "example": {
-                "username": "testuser",
-                "email": "testuser@example.com",
-                "password": "Test123!",
-                "full_name": "Test User"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "access_token": {
-                          "type": "string"
-                        },
-                        "refresh_token": {
-                          "type": "string"
-                        },
-                        "user": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "integer"
-                            },
-                            "username": {
-                              "type": "string"
-                            },
-                            "email": {
-                              "type": "string"
-                            },
-                            "full_name": {
-                              "type": "string"
-                            },
-                            "auth_provider": {
-                              "type": "string"
-                            },
-                            "role": {
-                              "type": "string"
-                            },
-                            "is_active": {
-                              "type": "boolean"
-                            },
-                            "email_verified": {
-                              "type": "boolean"
-                            },
-                            "created_at": {
-                              "type": "string"
-                            },
-                            "last_login_at": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "username",
-                            "email",
-                            "full_name",
-                            "auth_provider",
-                            "role",
-                            "is_active",
-                            "email_verified",
-                            "created_at",
-                            "last_login_at"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "access_token",
-                        "refresh_token",
-                        "user"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "message",
-                    "data"
-                  ]
-                },
-                "example": {
-                  "success": true,
-                  "message": "User registered successfully",
-                  "data": {
-                    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InRlc3R1c2VyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NjgzNzg5MTcsImlhdCI6MTc2ODM3NTMxN30.I2iqit2tVCOqnp9dYrE-kR18lVwTN-uQVUHky0QXXkA",
-                    "refresh_token": "adf8af33dc141b6011839040214292060a4f483b32ee6e6fc5c4c78bc3b6af38",
-                    "user": {
-                      "id": 1,
-                      "username": "testuser",
-                      "email": "testuser@example.com",
-                      "full_name": "Test User",
-                      "auth_provider": "local",
-                      "role": "user",
-                      "is_active": true,
-                      "email_verified": false,
-                      "created_at": "2026-01-14T14:21:57.467956+07:00",
-                      "last_login_at": "0001-01-01T00:00:00Z"
-                    }
-                  }
-                }
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": []
-      }
-    },
     "/login": {
       "post": {
         "summary": "Login",
@@ -4474,142 +4318,6 @@
                       "email_verified": false,
                       "created_at": "2026-01-15T11:10:07.393129+07:00",
                       "last_login_at": "2026-01-15T11:16:26.161281+07:00"
-                    }
-                  }
-                }
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": []
-      }
-    },
-    "/refresh": {
-      "post": {
-        "summary": "Refresh Token",
-        "deprecated": false,
-        "description": "",
-        "tags": [
-          "User"
-        ],
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "refresh_token": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "refresh_token"
-                ]
-              },
-              "example": {
-                "refresh_token": "fb8328a89d88aeacb60b35584d650faf96c6a9360969235335b9f6bd08650c59"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "access_token": {
-                          "type": "string"
-                        },
-                        "user": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "integer"
-                            },
-                            "username": {
-                              "type": "string"
-                            },
-                            "email": {
-                              "type": "string"
-                            },
-                            "full_name": {
-                              "type": "string"
-                            },
-                            "auth_provider": {
-                              "type": "string"
-                            },
-                            "role": {
-                              "type": "string"
-                            },
-                            "is_active": {
-                              "type": "boolean"
-                            },
-                            "email_verified": {
-                              "type": "boolean"
-                            },
-                            "created_at": {
-                              "type": "string"
-                            },
-                            "last_login_at": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "username",
-                            "email",
-                            "full_name",
-                            "auth_provider",
-                            "role",
-                            "is_active",
-                            "email_verified",
-                            "created_at",
-                            "last_login_at"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "access_token",
-                        "user"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "message",
-                    "data"
-                  ]
-                },
-                "example": {
-                  "success": true,
-                  "message": "Token refreshed successfully",
-                  "data": {
-                    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJ1c2VybmFtZSI6InRlc3R1c2VyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3Njg0NTQzMTYsImlhdCI6MTc2ODQ1MDcxNn0.ioI9JzP1ZwVDpjIyZOjhkxJ9-SPMbvTAkyjb3G4ch2w",
-                    "user": {
-                      "id": 4,
-                      "username": "testuser",
-                      "email": "testuser@example.com",
-                      "full_name": "Test User",
-                      "auth_provider": "local",
-                      "role": "user",
-                      "is_active": true,
-                      "email_verified": false,
-                      "created_at": "2026-01-15T11:10:07.393129+07:00",
-                      "last_login_at": "2026-01-15T11:16:33.333212+07:00"
                     }
                   }
                 }
@@ -6435,16 +6143,23 @@
   },
   "components": {
     "securitySchemes": {
-      "bearer": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "session",
+        "description": "Server-side session cookie (HttpOnly, Secure, SameSite=Strict). Set by POST /login."
+      },
+      "apiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Outbox API key (prefix hwa_). Used only by /api/outbox/* endpoints."
       }
     }
   },
   "security": [
     {
-      "bearer": []
+      "cookieAuth": []
     }
   ],
   "tags": [
