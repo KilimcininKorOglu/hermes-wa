@@ -3,9 +3,8 @@ package handler
 import (
 	"log"
 	"net/http"
-	"os"
-	"strings"
 
+	"charon/config"
 	"charon/internal/model"
 	"charon/internal/ws"
 
@@ -13,7 +12,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// Gorilla WebSocket upgrader with origin validation
+// Gorilla WebSocket upgrader with origin validation — reuses the origin list
+// parsed at startup so a restart is required to rotate allowed origins
+// (matches the CORS middleware behaviour).
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -22,12 +23,8 @@ var upgrader = websocket.Upgrader{
 		if origin == "" {
 			return true // Non-browser clients (curl, Postman)
 		}
-		allowedOrigins := os.Getenv("CORS_ALLOW_ORIGINS")
-		if allowedOrigins == "" {
-			return false
-		}
-		for _, o := range strings.Split(allowedOrigins, ",") {
-			if strings.TrimSpace(o) == origin {
+		for _, allowed := range config.CorsAllowOrigins {
+			if allowed == origin {
 				return true
 			}
 		}

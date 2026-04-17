@@ -264,6 +264,7 @@ func main() {
 	if len(allowOrigins) == 0 {
 		log.Fatal("CORS_ALLOW_ORIGINS yielded no valid origins after validation")
 	}
+	config.CorsAllowOrigins = allowOrigins
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: allowOrigins,
 		AllowMethods: []string{

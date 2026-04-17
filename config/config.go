@@ -11,6 +11,10 @@ var WarmingAutoReplyCooldown int // seconds
 // out to os.Getenv on every request.
 var CookieSecure bool
 
+// CorsAllowOrigins is the validated, trimmed list of origins allowed by CORS
+// and the WebSocket upgrade handshake. Populated once at startup in main.go.
+var CorsAllowOrigins []string
+
 // Typing Delay Configuration (read once at startup)
 var TypingDelayMin int // 0 = disabled (use calculated delay)
 var TypingDelayMax int
