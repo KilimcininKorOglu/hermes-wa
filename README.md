@@ -193,6 +193,16 @@ On first startup, if no admin user exists in the database, Charon automatically 
 
 ---
 
+## Health Check
+
+```http
+GET /
+```
+
+Returns `200 OK` when all dependencies are reachable, `503` otherwise. The response body summarises the state of the app database, the whatsmeow database, and the outbox database. Each probe runs with a 3-second timeout, so the endpoint fails fast under overload — use it as your readiness/liveness probe.
+
+---
+
 ## Authentication
 
 Charon uses **server-side sessions with httpOnly cookies** for user/UI authentication. API keys are available for external integrations.
@@ -517,7 +527,7 @@ WhatsApp instance lifecycle endpoints (requires session cookie + instance access
 
 | Method | Endpoint                        | Description                          |
 |:-------|:--------------------------------|:-------------------------------------|
-| POST   | `/api/login`                    | Create new WhatsApp instance         |
+| POST   | `/api/login`                    | Create new WhatsApp instance (legacy path — unrelated to `/login` auth) |
 | GET    | `/api/instances`                | List all instances (role-filtered)   |
 | PATCH  | `/api/instances/:instanceId`    | Update instance fields               |
 | DELETE | `/api/instances/:instanceId`    | Delete instance                      |
