@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"time"
 
 	_ "github.com/lib/pq"
 	"go.mau.fi/whatsmeow/store/sqlstore"
@@ -20,6 +21,10 @@ func InitWhatsmeow(dbURL string) {
 		log.Fatal("Failed to connect database:", err)
 	}
 
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(5 * time.Minute)
+	db.SetConnMaxIdleTime(2 * time.Minute)
 	WhatsmeowDB = db
 
 	// Create whatsmeow container
