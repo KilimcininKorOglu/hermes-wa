@@ -2,20 +2,20 @@ package handler
 
 import (
 	"net/http"
-	"os"
 	"time"
+
+	"charon/config"
 
 	"github.com/labstack/echo/v4"
 )
 
 func setSessionCookie(c echo.Context, rawToken string, maxAge time.Duration) {
-	secure := os.Getenv("COOKIE_SECURE") != "false"
 	cookie := &http.Cookie{
 		Name:     "session",
 		Value:    rawToken,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   secure,
+		Secure:   config.CookieSecure,
 		SameSite: http.SameSiteStrictMode,
 		MaxAge:   int(maxAge.Seconds()),
 	}
@@ -23,13 +23,12 @@ func setSessionCookie(c echo.Context, rawToken string, maxAge time.Duration) {
 }
 
 func clearSessionCookie(c echo.Context) {
-	secure := os.Getenv("COOKIE_SECURE") != "false"
 	cookie := &http.Cookie{
 		Name:     "session",
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   secure,
+		Secure:   config.CookieSecure,
 		SameSite: http.SameSiteStrictMode,
 		MaxAge:   -1,
 	}

@@ -88,6 +88,9 @@ func main() {
 	// Warming worker feature flag (consumed below to start the goroutine).
 	config.WarmingWorkerEnabled = os.Getenv("WARMING_WORKER_ENABLED") == "true"
 
+	// Cookie security flag — default true, only disable for plain http localhost dev.
+	config.CookieSecure = os.Getenv("COOKIE_SECURE") != "false"
+
 	cooldownStr := os.Getenv("WARMING_AUTO_REPLY_COOLDOWN")
 	if cooldownStr != "" {
 		if cooldown, err := strconv.Atoi(cooldownStr); err == nil && cooldown > 0 {
