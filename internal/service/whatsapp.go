@@ -628,6 +628,8 @@ func DeleteInstance(instanceID string) error {
 		return fmt.Errorf("delete instance: %w", err)
 	}
 
+	InvalidateWebhookCache(instanceID)
+
 	return nil
 }
 
