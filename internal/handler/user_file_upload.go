@@ -22,60 +22,30 @@ func UploadAvatar(c echo.Context) error {
 	// Get user from context
 	userClaims, ok := c.Get("user_claims").(*service.Claims)
 	if !ok {
-		return c.JSON(http.StatusUnauthorized, map[string]interface{}{
-			"success": false,
-			"message": "Unauthorized",
-			"error": map[string]string{
-				"code": "UNAUTHORIZED",
-			},
-		})
+		return ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", "UNAUTHORIZED", "")
 	}
 
 	// Get uploaded file
 	file, err := c.FormFile("avatar")
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"success": false,
-			"message": "No file uploaded",
-			"error": map[string]string{
-				"code": "NO_FILE",
-			},
-		})
+		return ErrorResponse(c, http.StatusBadRequest, "No file uploaded", "NO_FILE", err.Error())
 	}
 
 	// Validate file (basic validation)
 	if err := helper.ValidateImageFile(file); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"success": false,
-			"message": err.Error(),
-			"error": map[string]string{
-				"code": "INVALID_FILE",
-			},
-		})
+		return ErrorResponse(c, http.StatusBadRequest, "File is not a valid image", "INVALID_FILE", err.Error())
 	}
 
 	// Open file
 	src, err := file.Open()
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"success": false,
-			"message": "Failed to open uploaded file",
-			"error": map[string]string{
-				"code": "FILE_OPEN_ERROR",
-			},
-		})
+		return ErrorResponse(c, http.StatusInternalServerError, "Failed to open uploaded file", "FILE_OPEN_ERROR", err.Error())
 	}
 	defer src.Close()
 
 	// Check magic bytes (file signature validation)
 	if err := helper.CheckMagicBytes(src); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"success": false,
-			"message": err.Error(),
-			"error": map[string]string{
-				"code": "INVALID_FILE_SIGNATURE",
-			},
-		})
+		return ErrorResponse(c, http.StatusBadRequest, "File is not a valid image", "INVALID_FILE_SIGNATURE", err.Error())
 	}
 
 	// Process image: validate, compress, convert to WebP
@@ -84,13 +54,7 @@ func UploadAvatar(c echo.Context) error {
 	compressedData, err := helper.CompressAndResize(src, file)
 	if err != nil {
 		log.Printf("❌ Image processing failed: %v", err)
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"success": false,
-			"message": fmt.Sprintf("Image processing failed: %s", err.Error()),
-			"error": map[string]string{
-				"code": "PROCESSING_FAILED",
-			},
-		})
+		return ErrorResponse(c, http.StatusBadRequest, "Image processing failed", "PROCESSING_FAILED", err.Error())
 	}
 
 	log.Printf("✅ Image compressed: %d bytes → %d bytes", file.Size, len(compressedData))
@@ -98,13 +62,7 @@ func UploadAvatar(c echo.Context) error {
 	// Create user-specific directory
 	userDir := helper.GetUserUploadDir(userClaims.UserID)
 	if err := os.MkdirAll(userDir, 0755); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"success": false,
-			"message": "Failed to create user directory",
-			"error": map[string]string{
-				"code": "DIRECTORY_ERROR",
-			},
-		})
+		return ErrorResponse(c, http.StatusInternalServerError, "Failed to create user directory", "DIRECTORY_ERROR", err.Error())
 	}
 
 	// Get file path (always overwrites existing avatar)
@@ -118,25 +76,13 @@ func UploadAvatar(c echo.Context) error {
 
 	// Save compressed file
 	if err := saveCompressedFile(filePath, compressedData); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"success": false,
-			"message": "Failed to save file",
-			"error": map[string]string{
-				"code": "SAVE_ERROR",
-			},
-		})
+		return ErrorResponse(c, http.StatusInternalServerError, "Failed to save file", "SAVE_ERROR", err.Error())
 	}
 
 	// Get user for database update
 	user, err := model.GetUserByID(userClaims.UserID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"success": false,
-			"message": "Failed to get user data",
-			"error": map[string]string{
-				"code": "DATABASE_ERROR",
-			},
-		})
+		return ErrorResponse(c, http.StatusInternalServerError, "Failed to get user data", "DATABASE_ERROR", err.Error())
 	}
 
 	// Update user avatar_url in database
@@ -146,13 +92,7 @@ func UploadAvatar(c echo.Context) error {
 		// Rollback: delete uploaded file
 		helper.DeleteFile(filePath)
 
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"success": false,
-			"message": "Failed to update user profile",
-			"error": map[string]string{
-				"code": "DATABASE_ERROR",
-			},
-		})
+		return ErrorResponse(c, http.StatusInternalServerError, "Failed to update user profile", "DATABASE_ERROR", err.Error())
 	}
 
 	// Log upload to audit_logs

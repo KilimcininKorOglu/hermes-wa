@@ -78,35 +78,27 @@ func UpdateSystemIdentityFull(c echo.Context) error {
 
 		// Validate and Process File
 		if err := helper.ValidateImageFile(file); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
-				"success": false,
-				"message": fmt.Sprintf("File %s: %s", key, err.Error()),
-			})
+			return ErrorResponse(c, http.StatusBadRequest,
+				fmt.Sprintf("File %s is not a valid image", key), "INVALID_FILE", err.Error())
 		}
 
 		src, err := file.Open()
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"success": false,
-				"message": fmt.Sprintf("Failed to open file %s", key),
-			})
+			return ErrorResponse(c, http.StatusInternalServerError,
+				fmt.Sprintf("Failed to open file %s", key), "FILE_OPEN_ERROR", err.Error())
 		}
 
 		if err := helper.CheckMagicBytes(src); err != nil {
 			src.Close()
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
-				"success": false,
-				"message": fmt.Sprintf("File %s: %s", key, err.Error()),
-			})
+			return ErrorResponse(c, http.StatusBadRequest,
+				fmt.Sprintf("File %s is not a valid image", key), "INVALID_FILE_SIGNATURE", err.Error())
 		}
 
 		compressedData, err := helper.CompressAndResize(src, file)
 		src.Close()
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
-				"success": false,
-				"message": fmt.Sprintf("Processing failed for %s: %s", key, err.Error()),
-			})
+			return ErrorResponse(c, http.StatusBadRequest,
+				fmt.Sprintf("Image processing failed for %s", key), "PROCESSING_FAILED", err.Error())
 		}
 
 		// Create system directory
