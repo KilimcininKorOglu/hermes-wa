@@ -199,7 +199,12 @@ func main() {
 		e.IPExtractor = echo.ExtractIPDirect()
 	}
 
-	// e.Use(middleware.Logger())
+	e.Use(middleware.RequestID())
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: `{"time":"${time_rfc3339_nano}","request_id":"${id}","remote_ip":"${remote_ip}",` +
+			`"method":"${method}","uri":"${uri}","status":${status},` +
+			`"latency_ms":${latency},"bytes_in":${bytes_in},"bytes_out":${bytes_out}}` + "\n",
+	}))
 	e.Use(middleware.Recover())
 	e.Use(middleware.BodyLimit("100M"))
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
