@@ -6305,7 +6305,8 @@
           "429": {
             "description": "Daily per-user message limit reached"
           }
-        }
+        },
+        "deprecated": false
       }
     },
     "/api/outbox/enqueue-batch": {
@@ -6355,7 +6356,8 @@
           "429": {
             "description": "Daily per-user message limit reached"
           }
-        }
+        },
+        "deprecated": false
       }
     },
     "/api/outbox/status/{id}": {
@@ -6395,7 +6397,8 @@
           "404": {
             "description": "Message not found"
           }
-        }
+        },
+        "deprecated": false
       }
     },
     "/api/outbox/messages": {
@@ -6481,7 +6484,8 @@
           "401": {
             "description": "Unauthorized"
           }
-        }
+        },
+        "deprecated": false
       }
     },
     "/api/api-keys": {
@@ -6573,7 +6577,8 @@
           "403": {
             "description": "Role not permitted (viewer cannot create keys)"
           }
-        }
+        },
+        "deprecated": false
       },
       "get": {
         "summary": "List API keys",
@@ -6612,7 +6617,8 @@
           "401": {
             "description": "Unauthorized"
           }
-        }
+        },
+        "deprecated": false
       }
     },
     "/api/api-keys/{id}": {
@@ -6655,7 +6661,8 @@
           "404": {
             "description": "Key not found or not owned by caller"
           }
-        }
+        },
+        "deprecated": false
       }
     },
     "/api/warming/scripts/{scriptId}/lines/reorder": {
@@ -6730,7 +6737,8 @@
           "404": {
             "description": "Script not found"
           }
-        }
+        },
+        "deprecated": false
       }
     }
   },
