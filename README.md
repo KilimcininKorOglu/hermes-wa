@@ -951,6 +951,14 @@ if not hmac.compare_digest(mac.hexdigest(), sig):
 
 **Webhook payload** follows the same format as the WebSocket `incoming_message` event shown above.
 
+### Retry and Idempotency
+
+Charon retries failed webhook deliveries up to 3 additional times (initial attempt + 3 retries = 4 total). Retries use exponential backoff with the delay sequence `1s → 5s → 30s`. A 4xx response is treated as receiver-owned and stops retries immediately; 5xx and transport errors trigger a retry. Receivers should:
+
+- Treat webhooks as **at-least-once delivery** and make handlers idempotent
+- Deduplicate on a stable field (e.g. `data.message_id` for incoming messages, `data.id_outbox` for outbox callbacks)
+- Reject duplicate `X-Charon-Timestamp` values within the replay window
+
 ### Worker Outbox Callback
 
 When the blast outbox worker processes a message, it sends a webhook callback to the `webhook_url` configured in the worker config:
