@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,6 +12,9 @@ import (
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 )
+
+// maxDownloadSize mirrors WhatsApp's ~100MB document limit.
+const maxDownloadSize = 100 * 1024 * 1024
 
 // DetectMediaType detects media type from filename extension
 func DetectMediaType(filename string) string {
@@ -172,20 +176,25 @@ func DownloadFile(url string) ([]byte, string, error) {
 		return nil, "", fmt.Errorf("failed to download: status %d (%s)", resp.StatusCode, resp.Status)
 	}
 
-	// Read response body
-	data, err := io.ReadAll(resp.Body)
+	// Reject early when the server advertises an oversized payload.
+	if resp.ContentLength > maxDownloadSize {
+		return nil, "", fmt.Errorf("file too large: %d bytes (max %d)", resp.ContentLength, maxDownloadSize)
+	}
+
+	// Stream up to maxDownloadSize+1 bytes so overflow can be detected without buffering the whole body.
+	limited := io.LimitReader(resp.Body, maxDownloadSize+1)
+	buf := &bytes.Buffer{}
+	n, err := io.Copy(buf, limited)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to read response: %v", err)
 	}
-
-	// Validate file size (WhatsApp limit ~100MB for documents)
-	if len(data) > 100*1024*1024 {
-		return nil, "", fmt.Errorf("file too large: %d bytes (max 100MB)", len(data))
+	if n > maxDownloadSize {
+		return nil, "", fmt.Errorf("file too large: exceeds %d bytes", maxDownloadSize)
 	}
-
-	if len(data) == 0 {
+	if n == 0 {
 		return nil, "", fmt.Errorf("downloaded file is empty")
 	}
+	data := buf.Bytes()
 
 	// Extract filename from URL or Content-Disposition header
 	filename := ""
