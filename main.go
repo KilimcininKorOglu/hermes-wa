@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"charon/config"
@@ -513,6 +516,23 @@ func main() {
 	log.Printf("Server starting on port %s, baseURL=%s", port, baseURL)
 
 	// Bind to all interfaces, not just 127.0.0.1
-	log.Fatal(e.Start(":" + port))
+	go func() {
+		if err := e.Start(":" + port); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("API server failed: %v", err)
+		}
+	}()
 
+	// Wait for termination signal for graceful shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+
+	log.Println("Shutting down API server...")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := e.Shutdown(ctx); err != nil {
+		log.Printf("Graceful shutdown failed: %v", err)
+	} else {
+		log.Println("API server shutdown complete.")
+	}
 }
