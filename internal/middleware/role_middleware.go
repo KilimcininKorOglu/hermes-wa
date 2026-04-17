@@ -12,7 +12,7 @@ import (
 // RequireAdmin ensures the user has an admin role
 func RequireAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		// Get claims from context (set by JWTMiddleware)
+		// Get claims from context (set by session/API key middleware)
 		userClaims, ok := c.Get("user_claims").(*service.Claims)
 		if !ok || userClaims.Role != "admin" {
 			return c.JSON(http.StatusForbidden, map[string]interface{}{

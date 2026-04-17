@@ -20,7 +20,7 @@ func CreateWarmingTemplate(c echo.Context) error {
 		return handler.ErrorResponse(c, http.StatusBadRequest, "Invalid request body", "BAD_REQUEST", err.Error())
 	}
 
-	// Extract user ID from JWT context
+	// Extract user ID from session context
 	userID, ok := c.Get("user_id").(int64)
 	if !ok {
 		return handler.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", "UNAUTHORIZED", "")
@@ -55,7 +55,7 @@ func CreateWarmingTemplate(c echo.Context) error {
 func GetAllWarmingTemplates(c echo.Context) error {
 	category := c.QueryParam("category")
 
-	// Extract user context from JWT
+	// Extract user context from session
 	userID, ok := c.Get("user_id").(int64)
 	if !ok {
 		return handler.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", "UNAUTHORIZED", "")
@@ -123,7 +123,7 @@ func UpdateWarmingTemplate(c echo.Context) error {
 		return handler.ErrorResponse(c, http.StatusBadRequest, "Invalid request body", "BAD_REQUEST", err.Error())
 	}
 
-	// Extract user context from JWT
+	// Extract user context from session
 	userID, ok := c.Get("user_id").(int64)
 	if !ok {
 		return handler.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", "UNAUTHORIZED", "")
@@ -180,7 +180,7 @@ func DeleteWarmingTemplate(c echo.Context) error {
 		return handler.ErrorResponse(c, http.StatusBadRequest, "Invalid template ID", "INVALID_ID", err.Error())
 	}
 
-	// Extract user context from JWT
+	// Extract user context from session
 	userID, ok := c.Get("user_id").(int64)
 	if !ok {
 		return handler.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", "UNAUTHORIZED", "")

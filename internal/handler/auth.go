@@ -57,7 +57,7 @@ func Login(c echo.Context) error {
 		return ErrorResponse(c, 400, "Field 'circle' is required", "CIRCLE_REQUIRED", "")
 	}
 
-	// Get current user from context (set by JWT middleware)
+	// Get current user from context (set by session middleware)
 	userClaims, _ := c.Get("user_claims").(*service.Claims)
 
 	// Only admin and user roles may create instances

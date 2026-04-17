@@ -122,7 +122,7 @@ func LogoutUser(c echo.Context) error {
 // GetCurrentUser returns the current authenticated user's profile
 // GET /api/me
 func GetCurrentUser(c echo.Context) error {
-	// Get user from context (set by JWT middleware)
+	// Get user from context (set by session middleware)
 	userClaims, ok := c.Get("user_claims").(*service.Claims)
 	if !ok {
 		return ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", "UNAUTHORIZED", "")

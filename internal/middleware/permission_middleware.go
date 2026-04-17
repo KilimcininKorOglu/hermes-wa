@@ -15,7 +15,7 @@ import (
 func RequireInstanceAccess() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			// Get claims from context (set by JWTMiddleware)
+			// Get claims from context (set by session/API key middleware)
 			userClaims, ok := c.Get("user_claims").(*service.Claims)
 			if !ok || userClaims == nil {
 				return c.JSON(http.StatusUnauthorized, map[string]interface{}{
@@ -76,7 +76,7 @@ func RequireInstanceAccess() echo.MiddlewareFunc {
 func RequirePhoneNumberAccess() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			// Get claims from context (set by JWTMiddleware)
+			// Get claims from context (set by session/API key middleware)
 			userClaims, ok := c.Get("user_claims").(*service.Claims)
 			if !ok || userClaims == nil {
 				return c.JSON(http.StatusUnauthorized, map[string]interface{}{

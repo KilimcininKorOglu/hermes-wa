@@ -39,7 +39,7 @@ func APIKeyAuthMiddleware() echo.MiddlewareFunc {
 			// Update last used timestamp (async, don't block)
 			go model.UpdateAPIKeyLastUsed(context.Background(), key.ID)
 
-			// Set same context keys as JWT middleware for handler compatibility
+			// Set same context keys as session middleware for handler compatibility
 			claims := &service.Claims{
 				UserID:   int64(key.UserID),
 				Username: key.Username,

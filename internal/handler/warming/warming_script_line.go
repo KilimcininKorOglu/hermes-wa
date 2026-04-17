@@ -27,7 +27,7 @@ func CreateWarmingScriptLine(c echo.Context) error {
 		return handler.ErrorResponse(c, http.StatusBadRequest, "Invalid request body", "BAD_REQUEST", err.Error())
 	}
 
-	// Extract user context from JWT
+	// Extract user context from session
 	userID, ok := c.Get("user_id").(int64)
 	if !ok {
 		return handler.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", "UNAUTHORIZED", "")
@@ -81,7 +81,7 @@ func GetAllWarmingScriptLines(c echo.Context) error {
 		return handler.ErrorResponse(c, http.StatusBadRequest, "Invalid script ID", "INVALID_SCRIPT_ID", err.Error())
 	}
 
-	// Extract user context from JWT
+	// Extract user context from session
 	userID, ok := c.Get("user_id").(int64)
 	if !ok {
 		return handler.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", "UNAUTHORIZED", "")
@@ -182,7 +182,7 @@ func UpdateWarmingScriptLine(c echo.Context) error {
 		return handler.ErrorResponse(c, http.StatusBadRequest, "Invalid request body", "BAD_REQUEST", err.Error())
 	}
 
-	// Extract user context from JWT
+	// Extract user context from session
 	userID, ok := c.Get("user_id").(int64)
 	if !ok {
 		return handler.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", "UNAUTHORIZED", "")
@@ -243,7 +243,7 @@ func DeleteWarmingScriptLine(c echo.Context) error {
 		return handler.ErrorResponse(c, http.StatusBadRequest, "Invalid line ID", "INVALID_LINE_ID", err.Error())
 	}
 
-	// Extract user context from JWT
+	// Extract user context from session
 	userID, ok := c.Get("user_id").(int64)
 	if !ok {
 		return handler.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", "UNAUTHORIZED", "")
@@ -297,7 +297,7 @@ func GenerateWarmingScriptLines(c echo.Context) error {
 		req.Category = "casual"
 	}
 
-	// Extract user context from JWT
+	// Extract user context from session
 	userID, ok := c.Get("user_id").(int64)
 	if !ok {
 		return handler.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", "UNAUTHORIZED", "")
@@ -372,7 +372,7 @@ func ReorderWarmingScriptLines(c echo.Context) error {
 		return handler.ErrorResponse(c, http.StatusBadRequest, "No lines provided for reordering", "EMPTY_LINES", "")
 	}
 
-	// Extract user context from JWT
+	// Extract user context from session
 	userID, ok := c.Get("user_id").(int64)
 	if !ok {
 		return handler.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", "UNAUTHORIZED", "")

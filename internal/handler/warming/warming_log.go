@@ -30,7 +30,7 @@ func GetAllWarmingLogs(c echo.Context) error {
 		limit = 100
 	}
 
-	// Extract user context from JWT
+	// Extract user context from session
 	userID, ok := c.Get("user_id").(int64)
 	if !ok {
 		return handler.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", "UNAUTHORIZED", "")
@@ -72,7 +72,7 @@ func GetWarmingLogByID(c echo.Context) error {
 		return handler.ErrorResponse(c, http.StatusBadRequest, "Invalid log ID", "INVALID_ID", err.Error())
 	}
 
-	// Extract user context from JWT
+	// Extract user context from session
 	userID, ok := c.Get("user_id").(int64)
 	if !ok {
 		return handler.ErrorResponse(c, http.StatusUnauthorized, "Unauthorized", "UNAUTHORIZED", "")

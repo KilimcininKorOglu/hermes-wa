@@ -53,7 +53,7 @@ func SessionAuthMiddleware() echo.MiddlewareFunc {
 				}
 			}()
 
-			// Set context keys — MUST match jwt_middleware.go and api_key_middleware.go
+			// Set context keys — MUST match api_key_middleware.go
 			claims := &service.Claims{
 				UserID:   session.UserID,
 				Username: session.Username,

@@ -18,7 +18,7 @@ type Client struct {
 	// Write goroutine reads from here and sends to conn.
 	send chan WsEvent
 
-	// User identity from JWT for event filtering
+	// User identity from session for event filtering
 	UserID  int
 	IsAdmin bool
 
