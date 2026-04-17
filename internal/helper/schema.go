@@ -359,30 +359,6 @@ func InitCustomSchema() {
 		COMMENT ON COLUMN users.role IS 'User role: admin (full access), user (standard), viewer (read-only)';
 
 		-- =====================================================
-		-- Table: refresh_tokens
-		-- Purpose: Store refresh tokens for long-lived sessions
-		-- =====================================================
-		CREATE TABLE IF NOT EXISTS refresh_tokens (
-			id SERIAL PRIMARY KEY,
-			user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-			token VARCHAR(255) UNIQUE NOT NULL,
-			expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-			created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-			revoked BOOLEAN DEFAULT false,
-			ip_address VARCHAR(45),
-			user_agent TEXT
-		);
-
-		CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id);
-		CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token ON refresh_tokens(token);
-		CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
-
-		COMMENT ON TABLE refresh_tokens IS 'Refresh tokens for maintaining user sessions';
-		COMMENT ON COLUMN refresh_tokens.token IS 'Unique refresh token string';
-		COMMENT ON COLUMN refresh_tokens.expires_at IS 'Token expiration timestamp';
-		COMMENT ON COLUMN refresh_tokens.revoked IS 'True if token has been revoked (logout)';
-
-		-- =====================================================
 		-- Table: user_instances
 		-- Purpose: User-instance access control (Admin/User model)
 		-- =====================================================
@@ -446,32 +422,6 @@ func InitCustomSchema() {
 	}
 
 	// =====================================================
-	// TOKEN BLACKLIST (for immediate logout/password change)
-	// =====================================================
-	tokenBlacklistSchema := `
-		CREATE TABLE IF NOT EXISTS token_blacklist (
-			id BIGSERIAL PRIMARY KEY,
-			token TEXT NOT NULL,
-			user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-			reason VARCHAR(50),
-			expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-			created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-		);
-
-		CREATE INDEX IF NOT EXISTS idx_token_blacklist_token ON token_blacklist(token);
-		CREATE INDEX IF NOT EXISTS idx_token_blacklist_expires_at ON token_blacklist(expires_at);
-		CREATE INDEX IF NOT EXISTS idx_token_blacklist_user_id ON token_blacklist(user_id);
-
-		COMMENT ON TABLE token_blacklist IS 'Blacklisted access tokens for immediate logout';
-		COMMENT ON COLUMN token_blacklist.reason IS 'logout, password_change, security_breach, etc.';
-	`
-	if _, err := db.Exec(tokenBlacklistSchema); err != nil {
-		log.Printf("⚠️ Warning: Could not create token_blacklist: %v", err)
-	} else {
-		log.Println("✅ Token blacklist table created successfully")
-	}
-
-	// =====================================================
 	// SYSTEM SETTINGS TABLE
 	// =====================================================
 	systemSettingsSchema := `
@@ -495,25 +445,17 @@ func InitCustomSchema() {
 	log.Println("✅ User management schema created successfully")
 
 	// =====================================================
-	// WS TICKETS TABLE (one-time WebSocket auth tickets)
+	// CLEANUP: drop dead JWT-era tables (refresh_tokens, token_blacklist, ws_tickets)
 	// =====================================================
-	wsTicketsSchema := `
-		CREATE TABLE IF NOT EXISTS ws_tickets (
-			id SERIAL PRIMARY KEY,
-			ticket VARCHAR(64) UNIQUE NOT NULL,
-			user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-			role VARCHAR(20) NOT NULL,
-			expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-			used BOOLEAN DEFAULT false,
-			created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-		);
-		CREATE INDEX IF NOT EXISTS idx_ws_tickets_ticket ON ws_tickets(ticket);
-		CREATE INDEX IF NOT EXISTS idx_ws_tickets_expires_at ON ws_tickets(expires_at);
+	dropLegacyAuthTables := `
+		DROP TABLE IF EXISTS refresh_tokens CASCADE;
+		DROP TABLE IF EXISTS token_blacklist CASCADE;
+		DROP TABLE IF EXISTS ws_tickets CASCADE;
 	`
-	if _, err := db.Exec(wsTicketsSchema); err != nil {
-		log.Printf("⚠️ Warning: Could not create ws_tickets table: %v", err)
+	if _, err := db.Exec(dropLegacyAuthTables); err != nil {
+		log.Printf("⚠️ Warning: Could not drop legacy auth tables: %v", err)
 	} else {
-		log.Println("✅ WebSocket tickets table created successfully")
+		log.Println("✅ Legacy JWT tables cleanup completed")
 	}
 
 	// =====================================================
