@@ -84,7 +84,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getQrInstanceid"
       }
     },
     "/api/status/{instanceId}": {
@@ -154,7 +155,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getStatusInstanceid"
       }
     },
     "/api/instances": {
@@ -195,7 +197,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getInstances"
       }
     },
     "/api/logout/{instanceId}": {
@@ -255,7 +258,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postLogoutInstanceid"
       }
     },
     "/api/login": {
@@ -345,7 +349,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "createInstance"
       }
     },
     "/api/instances/{instanceId}": {
@@ -405,7 +410,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "deleteInstancesInstanceid"
       },
       "patch": {
         "summary": "Update Instance Fields",
@@ -493,7 +499,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "patchInstancesInstanceid"
       }
     },
     "/api/qr-cancel/{instanceId}": {
@@ -558,7 +565,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "deleteQrCancelInstanceid"
       }
     },
     "/api/groups/by-number/{phoneNumber}": {
@@ -588,7 +596,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getGroupsByNumberPhonenumber"
       }
     },
     "/api/send-group/by-number/{phoneNumber}": {
@@ -688,7 +697,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postSendGroupByNumberPhonenumber"
       }
     },
     "/api/send-group/by-number/{phoneNumber}/media": {
@@ -806,7 +816,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postSendGroupByNumberPhonenumberMedia"
       }
     },
     "/api/send-group/by-number/{phoneNumber}/media-url": {
@@ -866,7 +877,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postSendGroupByNumberPhonenumberMediaUrl"
       }
     },
     "/api/send-group/{instanceId}": {
@@ -961,7 +973,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postSendGroupInstanceid"
       }
     },
     "/api/send-group/{instanceId}/media": {
@@ -1074,7 +1087,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postSendGroupInstanceidMedia"
       }
     },
     "/api/send-group/{instanceId}/media-url": {
@@ -1189,7 +1203,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postSendGroupInstanceidMediaUrl"
       }
     },
     "/api/groups/{instanceId}": {
@@ -1302,7 +1317,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getGroupsInstanceid"
       }
     },
     "/api/by-number/{phoneNumber}": {
@@ -1357,7 +1373,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postByNumberPhonenumber"
       }
     },
     "/api/by-number/{phoneNumber}/media-url": {
@@ -1397,7 +1414,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postByNumberPhonenumberMediaUrl"
       }
     },
     "/api/by-number/{phoneNumber}/media-file": {
@@ -1451,7 +1469,8 @@
             "headers": {}
           }
         },
-        "security": []
+        "security": [],
+        "operationId": "postByNumberPhonenumberMediaFile"
       }
     },
     "/api/send/{instanceId}": {
@@ -1551,7 +1570,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postSendInstanceid"
       }
     },
     "/api/send/{instanceId}/media-url": {
@@ -1671,7 +1691,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postSendInstanceidMediaUrl"
       }
     },
     "/api/send/{instanceId}/media": {
@@ -1789,7 +1810,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postSendInstanceidMedia"
       }
     },
     "/api/instances/{instanceId}/webhook-setconfig": {
@@ -1881,7 +1903,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postInstancesInstanceidWebhookSetconfig"
       }
     },
     "/api/warming/scripts": {
@@ -1996,7 +2019,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postWarmingScripts"
       },
       "get": {
         "summary": "Get Scripts",
@@ -2112,7 +2136,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getWarmingScripts"
       }
     },
     "/api/warming/scripts/{scriptId}": {
@@ -2172,7 +2197,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "putWarmingScriptsScriptid"
       },
       "get": {
         "summary": "Get Scripts ByID",
@@ -2255,7 +2281,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getWarmingScriptsScriptid"
       },
       "delete": {
         "summary": "Del Scripts ByID",
@@ -2294,7 +2321,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "deleteWarmingScriptsScriptid"
       }
     },
     "/api/warming/scripts/{scriptId}/lines": {
@@ -2419,7 +2447,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postWarmingScriptsScriptidLines"
       },
       "get": {
         "summary": "All Scripts Line",
@@ -2457,7 +2486,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getWarmingScriptsScriptidLines"
       }
     },
     "/api/warming/scripts/{scriptId}/lines/generate": {
@@ -2547,7 +2577,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postWarmingScriptsScriptidLinesGenerate"
       }
     },
     "/api/warming/scripts/{scriptId}/lines/{lineId}": {
@@ -2587,7 +2618,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getWarmingScriptsScriptidLinesLineid"
       },
       "delete": {
         "summary": "Del Scripts Line ByID",
@@ -2625,7 +2657,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "deleteWarmingScriptsScriptidLinesLineid"
       },
       "put": {
         "summary": "Update Scripts Line ByID",
@@ -2688,7 +2721,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "putWarmingScriptsScriptidLinesLineid"
       }
     },
     "/api/warming/templates": {
@@ -2937,7 +2971,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postWarmingTemplates"
       },
       "get": {
         "summary": "Get Templates",
@@ -2986,7 +3021,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getWarmingTemplates"
       }
     },
     "/api/warming/templates/{templateId}": {
@@ -3085,7 +3121,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "putWarmingTemplatesTemplateid"
       },
       "delete": {
         "summary": "Del Templates",
@@ -3182,7 +3219,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "deleteWarmingTemplatesTemplateid"
       },
       "get": {
         "summary": "Get Templates byID",
@@ -3220,7 +3258,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getWarmingTemplatesTemplateid"
       }
     },
     "/api/warming/rooms": {
@@ -3397,7 +3436,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postWarmingRooms"
       },
       "get": {
         "summary": "Get Room List",
@@ -3471,7 +3511,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getWarmingRooms"
       }
     },
     "/api/warming/rooms/{roomId}": {
@@ -3591,7 +3632,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getWarmingRoomsRoomid"
       },
       "put": {
         "summary": "Update Room byID",
@@ -3683,7 +3725,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "putWarmingRoomsRoomid"
       },
       "delete": {
         "summary": "Del Room",
@@ -3741,7 +3784,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "deleteWarmingRoomsRoomid"
       }
     },
     "/api/warming/rooms/{roomId}/status": {
@@ -3826,7 +3870,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "patchWarmingRoomsRoomidStatus"
       }
     },
     "/api/warming/rooms/{roomId}/restart": {
@@ -3912,7 +3957,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postWarmingRoomsRoomidRestart"
       }
     },
     "/api/warming/logs": {
@@ -3973,7 +4019,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getWarmingLogs"
       }
     },
     "/api/warming/logs/{logId}": {
@@ -4003,7 +4050,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getWarmingLogsLogid"
       }
     },
     "/api/contacts/{instanceId}/export": {
@@ -4044,7 +4092,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getContactsInstanceidExport"
       }
     },
     "/api/contacts/{instanceId}/jid": {
@@ -4149,7 +4198,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getContactsInstanceidJid"
       }
     },
     "/api/contacts/{instanceId}/jid/mutual-groups": {
@@ -4180,7 +4230,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getContactsInstanceidJidMutualGroups"
       }
     },
     "/login": {
@@ -4326,7 +4377,8 @@
             "headers": {}
           }
         },
-        "security": []
+        "security": [],
+        "operationId": "postLogin"
       }
     },
     "/api/me": {
@@ -4431,7 +4483,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getMe"
       },
       "put": {
         "summary": "Update Profile",
@@ -4564,7 +4617,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "putMe"
       }
     },
     "/api/me/password": {
@@ -4634,7 +4688,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "putMePassword"
       }
     },
     "/api/logout": {
@@ -4699,7 +4754,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postLogout"
       }
     },
     "/api/me/avatar": {
@@ -4792,7 +4848,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postMeAvatar"
       }
     },
     "/api/system/identity": {
@@ -4888,7 +4945,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postSystemIdentity"
       },
       "get": {
         "summary": "Get Identity Info",
@@ -4916,7 +4974,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getSystemIdentity"
       }
     },
     "/api/blast-outbox/configs": {
@@ -5075,7 +5134,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postBlastOutboxConfigs"
       },
       "get": {
         "summary": "Get Config",
@@ -5171,7 +5231,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getBlastOutboxConfigs"
       }
     },
     "/api/blast-outbox/configs/{configId}": {
@@ -5276,7 +5337,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getBlastOutboxConfigsConfigid"
       },
       "put": {
         "summary": "Update Config",
@@ -5444,7 +5506,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "putBlastOutboxConfigsConfigid"
       },
       "delete": {
         "summary": "Del Config",
@@ -5487,7 +5550,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "deleteBlastOutboxConfigsConfigid"
       }
     },
     "/api/blast-outbox/configs/{configId}/toggle": {
@@ -5592,7 +5656,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postBlastOutboxConfigsConfigidToggle"
       }
     },
     "/api/blast-outbox/available-circles": {
@@ -5647,7 +5712,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getBlastOutboxAvailableCircles"
       }
     },
     "/api/blast-outbox/available-applications": {
@@ -5678,7 +5744,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getBlastOutboxAvailableApplications"
       }
     },
     "/webservices/index.php/main/webhookwa/whatsapp_status": {
@@ -5779,7 +5846,8 @@
             "headers": {}
           }
         },
-        "security": []
+        "security": [],
+        "operationId": "postWebservicesIndex.phpMainWebhookwaWhatsappStatus"
       }
     },
     "/": {
@@ -5823,7 +5891,8 @@
             "headers": {}
           }
         },
-        "security": []
+        "security": [],
+        "operationId": "get"
       }
     },
     "/api/contacts/{instanceId}": {
@@ -5971,7 +6040,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getContactsInstanceid"
       }
     },
     "/api/check/{instanceId}": {
@@ -6069,7 +6139,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "postCheckInstanceid"
       }
     },
     "/api/info-device/{instanceId}": {
@@ -6137,7 +6208,8 @@
           {
             "cookieAuth": []
           }
-        ]
+        ],
+        "operationId": "getInfoDeviceInstanceid"
       }
     },
     "/api/outbox/enqueue": {
