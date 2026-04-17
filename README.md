@@ -126,23 +126,23 @@ REST API for WhatsApp Web automation, multi-instance management, and real-time m
 - API key system for external application integrations
 - Keys are SHA-256 hashed in database (raw key shown once on creation)
 - Per-key application scope locking (optional)
-- Key management via JWT-protected endpoints
+- Key management via session-cookie-protected endpoints
 - Last-used tracking for audit purposes
 
 ---
 
 ## Tech Stack
 
-| Component | Technology                                                |
-|:----------|:----------------------------------------------------------|
-| Language  | Go 1.24.3+                                                |
-| Framework | [Echo v4](https://echo.labstack.com/)                     |
-| WhatsApp  | [whatsmeow](https://github.com/tulir/whatsmeow)           |
-| Database  | PostgreSQL 12+                                            |
-| WebSocket | [Gorilla WebSocket](https://github.com/gorilla/websocket) |
-| AI        | Google Gemini API                                         |
+| Component | Technology                                                   |
+|:----------|:-------------------------------------------------------------|
+| Language  | Go 1.26.2+                                                   |
+| Framework | [Echo v4](https://echo.labstack.com/)                        |
+| WhatsApp  | [whatsmeow](https://github.com/tulir/whatsmeow)              |
+| Database  | PostgreSQL 12+                                               |
+| WebSocket | [Gorilla WebSocket](https://github.com/gorilla/websocket)    |
+| AI        | Google Gemini API                                            |
 | Frontend  | React 19 + Vite 8 + TypeScript + TailwindCSS v4 + Zustand v5 |
-| Container | Docker / Docker Compose                                   |
+| Container | Docker / Docker Compose                                      |
 
 ---
 
@@ -150,7 +150,7 @@ REST API for WhatsApp Web automation, multi-instance management, and real-time m
 
 ### Prerequisites
 
-- Go 1.24.3 or later
+- Go 1.26.2 or later
 - Node.js 22+ and npm (for frontend)
 - PostgreSQL 12 or later
 - Make (build tool)
@@ -162,8 +162,8 @@ REST API for WhatsApp Web automation, multi-instance management, and real-time m
 All build operations go through the Makefile:
 
 ```bash
-# Build both API server and worker
-make build
+# Build both API server and worker (GOFLAGS=-mod=mod required if docker-data/go-mod exists locally)
+GOFLAGS=-mod=mod make build
 
 # Build frontend
 cd web && npm install && npm run build
@@ -195,22 +195,23 @@ On first startup, if no admin user exists in the database, Charon automatically 
 
 ## Authentication
 
-Charon uses JWT-based authentication with access/refresh token pairs. API keys are available for external integrations.
+Charon uses **server-side sessions with httpOnly cookies** for user/UI authentication. API keys are available for external integrations.
 
 ### Roles
 
-| Role     | Description                                                              |
-|:---------|:-------------------------------------------------------------------------|
-| `admin`  | Full access to all resources and admin endpoints                         |
-| `user`   | Standard access, scoped to assigned instances                            |
-| `viewer` | Read-only access, blocked from all write operations on instances/phones  |
+| Role     | Description                                                             |
+|:---------|:------------------------------------------------------------------------|
+| `admin`  | Full access to all resources and admin endpoints                        |
+| `user`   | Standard access, scoped to assigned instances                           |
+| `viewer` | Read-only access, blocked from all write operations on instances/phones |
 
-### JWT Flow
+### Session Flow
 
-1. **Login** to receive an access token + refresh token (user accounts are created by admins via `POST /api/admin/users`)
-2. Include the access token in all API requests: `Authorization: Bearer {access_token}`
-3. When the access token expires, call `/refresh` with the refresh token to get a new pair
-4. Refresh tokens are rotated on each use (old token is consumed, new one issued)
+1. **Login** with username/password (user accounts are created by admins via `POST /api/admin/users`)
+2. The server creates a DB-backed session and sets an HttpOnly, Secure, SameSite=Strict `session` cookie
+3. The browser sends the cookie automatically on all subsequent requests — no `Authorization` header needed
+4. Sessions use **sliding expiry** (7 days default, extended on each request)
+5. Admin role change or user deactivation triggers instant session revocation across all devices
 
 ### Login
 
@@ -226,15 +227,13 @@ Content-Type: application/json
 }
 ```
 
-**Response:**
+**Response** (cookie set by server):
 
 ```json
 {
   "success": true,
   "message": "Login successful",
   "data": {
-    "access_token": "eyJhbGc...",
-    "refresh_token": "eyJhbGc...",
     "user": {
       "id": 1,
       "username": "johndoe",
@@ -245,20 +244,19 @@ Content-Type: application/json
 }
 ```
 
-### Refresh Token
+After login, the browser stores the `session` cookie and sends it automatically. Non-browser clients should enable cookie jar support (axios: `withCredentials: true`; curl: `-c cookies.txt -b cookies.txt`).
+
+### Logout
 
 ```http
-POST /refresh
-Content-Type: application/json
+POST /logout
 ```
 
-```json
-{
-  "refresh_token": "eyJhbGc..."
-}
-```
+Destroys the session server-side and clears the cookie. No body required — the `session` cookie identifies the session to destroy. Available on a public route so expired sessions can still log out cleanly.
 
-Returns a new access token and a new refresh token. The old refresh token is invalidated.
+### Account Lockout
+
+Five consecutive failed logins lock the account for 15 minutes (`failed_login_count` + `locked_until` columns on the users table). Successful login resets the counter.
 
 ---
 
@@ -344,15 +342,15 @@ Configure these in your `.env` file.
 
 ### Core Configuration
 
-| Variable              | Description                                  | Default | Example                                      |
-|:----------------------|:---------------------------------------------|:--------|:---------------------------------------------|
-| `DATABASE_URL`        | PostgreSQL URL for whatsmeow session storage | --      | `postgres://user:pass@localhost:5432/db`     |
-| `APP_DATABASE_URL`    | PostgreSQL URL for application data          | --      | `postgres://user:pass@localhost:5432/app`    |
-| `OUTBOX_DATABASE_URL` | PostgreSQL URL for outbox (optional)         | --      | `postgres://user:pass@localhost:5432/outbox` |
-| `JWT_SECRET`          | Secret key for JWT authentication (min 32 chars) | --  | `your-very-long-secret-key-here-32chars`     |
-| `PORT`                | Server listening port                        | `2121`  | `3000`                                       |
-| `BASEURL`             | Public host/IP of the server (without protocol) | --   | `127.0.0.1`                                  |
-| `CORS_ALLOW_ORIGINS`  | Allowed origins for CORS (required)          | --      | `http://localhost:3000`                      |
+| Variable              | Description                                     | Default | Example                                      |
+|:----------------------|:------------------------------------------------|:--------|:---------------------------------------------|
+| `DATABASE_URL`        | PostgreSQL URL for whatsmeow session storage    | --      | `postgres://user:pass@localhost:5432/db`     |
+| `APP_DATABASE_URL`    | PostgreSQL URL for application data             | --      | `postgres://user:pass@localhost:5432/app`    |
+| `OUTBOX_DATABASE_URL` | PostgreSQL URL for outbox (optional)            | --      | `postgres://user:pass@localhost:5432/outbox` |
+| `PORT`                | Server listening port                           | `2121`  | `3000`                                       |
+| `BASEURL`             | Public host/IP of the server (without protocol) | --      | `127.0.0.1`                                  |
+| `CORS_ALLOW_ORIGINS`  | Allowed origins for CORS (required)             | --      | `http://localhost:3000`                      |
+| `BEHIND_PROXY`        | Enable `X-Real-IP` extraction behind reverse proxy | `false` | `true`                                    |
 
 ### Features
 
@@ -365,13 +363,12 @@ Configure these in your `.env` file.
 | `PHONE_COUNTRY_CODE`                     | Country code for phone number formatting    | --      | `90`    |
 | `ALLOW_9_DIGIT_PHONE_NUMBER`             | Skip IsOnWhatsApp check for leading-0, no-cc-prefix, or <10 digit numbers | `false` | `true`  |
 
-### JWT Token Configuration
+### Session Configuration
 
-| Variable                      | Description                      | Default | Example |
-|:------------------------------|:---------------------------------|:--------|:--------|
-| `JWT_ACCESS_TOKEN_EXPIRY`     | Access token validity duration   | `1h`    | `2h`    |
-| `JWT_REFRESH_TOKEN_EXPIRY`    | Refresh token validity duration  | `168h`  | `720h`  |
-| `MAX_REFRESH_TOKENS_PER_USER` | Maximum concurrent refresh tokens| `10`    | `5`     |
+| Variable         | Description                                            | Default | Example |
+|:-----------------|:-------------------------------------------------------|:--------|:--------|
+| `SESSION_EXPIRY` | Session validity duration (sliding, extended per request) | `168h`  | `720h`  |
+| `COOKIE_SECURE`  | Set `Secure` flag on session cookie (disable for localhost dev) | `true` | `false` |
 
 ### Avatar Upload Configuration
 
@@ -485,6 +482,8 @@ docker run -d --name charon-worker \
 make build-all
 ```
 
+**Note:** Windows cross-compile is currently broken with Go 1.26 + zig (0.14–0.15): Go passes a `-tsaware` linker flag unsupported by zig. CI builds Linux only (amd64 + arm64). Release binaries for all platforms are produced by `goreleaser-cross` on tag pushes matching `v*`.
+
 ### Auto-migration
 
 The application automatically updates the database schema on startup:
@@ -500,21 +499,21 @@ No manual migration commands are needed.
 
 ## User Profile API
 
-Authenticated user management endpoints (requires JWT):
+Authenticated user management endpoints (requires session cookie):
 
-| Method | Endpoint           | Description                   |
-|:-------|:-------------------|:------------------------------|
-| GET    | `/api/me`          | Get current user profile      |
-| PUT    | `/api/me`          | Update profile (name, avatar) |
-| PUT    | `/api/me/password`  | Change password               |
-| POST   | `/api/logout`      | Logout (invalidate tokens)    |
-| POST   | `/api/me/avatar`   | Upload avatar image           |
+| Method | Endpoint           | Description                          |
+|:-------|:-------------------|:-------------------------------------|
+| GET    | `/api/me`          | Get current user profile             |
+| PUT    | `/api/me`          | Update profile (name, avatar)        |
+| PUT    | `/api/me/password` | Change password (destroys all sessions) |
+| POST   | `/logout`          | Logout (public route, destroys session) |
+| POST   | `/api/me/avatar`   | Upload avatar image                  |
 
 ---
 
 ## Instance Management API
 
-WhatsApp instance lifecycle endpoints (requires JWT + instance access):
+WhatsApp instance lifecycle endpoints (requires session cookie + instance access):
 
 | Method | Endpoint                        | Description                          |
 |:-------|:--------------------------------|:-------------------------------------|
@@ -532,7 +531,7 @@ WhatsApp instance lifecycle endpoints (requires JWT + instance access):
 
 ```http
 POST /api/login
-Authorization: Bearer {jwt_token}
+Cookie: session={session_cookie}
 Content-Type: application/json
 ```
 
@@ -548,7 +547,7 @@ The `circle` field is required and used for instance grouping. After creation, c
 
 ```http
 PATCH /api/instances/:instanceId
-Authorization: Bearer {jwt_token}
+Cookie: session={session_cookie}
 Content-Type: application/json
 ```
 
@@ -566,7 +565,7 @@ All fields are optional. At least one must be provided.
 
 ## Messaging API
 
-Send messages via instance ID or phone number (requires JWT):
+Send messages via instance ID or phone number (requires session cookie):
 
 ### By Instance ID
 
@@ -591,7 +590,7 @@ Routes resolve the phone number to an instance, then check user access:
 
 ```http
 POST /api/send/:instanceId
-Authorization: Bearer {jwt_token}
+Cookie: session={session_cookie}
 Content-Type: application/json
 ```
 
@@ -606,7 +605,7 @@ Content-Type: application/json
 
 ```http
 POST /api/send/:instanceId/media-url
-Authorization: Bearer {jwt_token}
+Cookie: session={session_cookie}
 Content-Type: application/json
 ```
 
@@ -625,7 +624,7 @@ Content-Type: application/json
 
 ```http
 POST /api/send/:instanceId/media
-Authorization: Bearer {jwt_token}
+Cookie: session={session_cookie}
 Content-Type: multipart/form-data
 ```
 
@@ -635,7 +634,7 @@ Form fields: `to` (required), `file` (required), `caption` (optional).
 
 ```http
 POST /api/check/:instanceId
-Authorization: Bearer {jwt_token}
+Cookie: session={session_cookie}
 Content-Type: application/json
 ```
 
@@ -649,7 +648,7 @@ Content-Type: application/json
 
 ## Group Messaging API
 
-Group operations via instance ID or phone number (requires JWT):
+Group operations via instance ID or phone number (requires session cookie):
 
 ### By Instance ID
 
@@ -673,7 +672,7 @@ Group operations via instance ID or phone number (requires JWT):
 
 ## File Manager API
 
-File browser for the uploads directory (requires JWT):
+File browser for the uploads directory (requires session cookie):
 
 | Method | Endpoint      | Description                     |
 |:-------|:--------------|:--------------------------------|
@@ -684,7 +683,7 @@ File browser for the uploads directory (requires JWT):
 
 ## System Identity API
 
-Company branding configuration (requires JWT):
+Company branding configuration (requires session cookie):
 
 | Method | Endpoint               | Description                           |
 |:-------|:-----------------------|:--------------------------------------|
@@ -695,7 +694,7 @@ Company branding configuration (requires JWT):
 
 ## Warming System API
 
-WhatsApp conversation simulation management (requires JWT):
+WhatsApp conversation simulation management (requires session cookie):
 
 ### Scripts
 
@@ -752,7 +751,7 @@ WhatsApp conversation simulation management (requires JWT):
 
 ## Worker Config API
 
-Blast outbox worker configuration (requires JWT):
+Blast outbox worker configuration (requires session cookie):
 
 | Method | Endpoint                                        | Description                    |
 |:-------|:------------------------------------------------|:-------------------------------|
@@ -777,7 +776,7 @@ Create an API key from the Profile page in the web UI, or via the API:
 
 ```http
 POST /api/api-keys
-Authorization: Bearer {jwt_token}
+Cookie: session={session_cookie}
 Content-Type: application/json
 ```
 
@@ -867,21 +866,23 @@ X-API-Key: hwa_your_api_key_here
 
 ## WebSocket Events
 
-### Global WebSocket -- System Events (JWT Required)
+### Global WebSocket -- System Events (Session Required)
 
 ```
-ws://{host}:{port}/ws?token={jwt_token}
+ws://{host}:{port}/ws
 ```
 
-Requires JWT token as query parameter. Monitors QR code generation, login/logout events, connection status changes, and system-wide notifications for all instances. Origin is validated against `CORS_ALLOW_ORIGINS`.
+The browser sends the `session` cookie automatically on same-origin WebSocket upgrade — no ticket exchange or query token. Origin is validated against `CORS_ALLOW_ORIGINS`. Non-admin clients only receive events for instances they own (user-scoped filtering via the `user_instances` table).
 
-### Instance-Specific WebSocket -- Incoming Messages (JWT Required)
+Monitors QR code generation, login/logout events, connection status changes, and system-wide notifications.
+
+### Instance-Specific WebSocket -- Incoming Messages (Session Required)
 
 ```
-ws://{host}:{port}/api/listen/{instanceId}?token={jwt_token}
+ws://{host}:{port}/api/listen/{instanceId}
 ```
 
-Requires JWT token as query parameter. Only streams messages for the specified instance.
+Cookie-based auth (same as the global endpoint). Only streams messages for the specified instance, after the access check passes.
 
 **Event payload:**
 
@@ -910,7 +911,7 @@ Requires JWT token as query parameter. Only streams messages for the specified i
 
 ```http
 POST /api/instances/:instanceId/webhook-setconfig
-Authorization: Bearer {token}
+Cookie: session={session_cookie}
 Content-Type: application/json
 ```
 
@@ -959,7 +960,7 @@ Signed with `X-Charon-Signature` (HMAC-SHA256) if `webhook_secret` is configured
 
 ## Admin API
 
-Admin-only endpoints (requires JWT with `admin` role):
+Admin-only endpoints (requires session cookie with `admin` role):
 
 | Method | Endpoint                                     | Description                    |
 |:-------|:---------------------------------------------|:-------------------------------|
@@ -977,7 +978,7 @@ Admin self-deletion is blocked. The last remaining admin cannot be deleted.
 
 ## API Key Management
 
-Manage API keys for external integrations (requires JWT):
+Manage API keys for external integrations (requires session cookie):
 
 | Method | Endpoint              | Description                     |
 |:-------|:----------------------|:--------------------------------|
@@ -991,7 +992,7 @@ API keys use the `X-API-Key` header and are scoped per user. The raw key (`hwa_.
 
 ## Contacts API
 
-Contact management endpoints (requires JWT + instance access):
+Contact management endpoints (requires session cookie + instance access):
 
 | Method | Endpoint                                       | Description                       |
 |:-------|:-----------------------------------------------|:----------------------------------|
