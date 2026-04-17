@@ -13,6 +13,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -250,12 +251,17 @@ func (w *WorkerInstance) sendWebhook(msg *OutboxMessage, status int, statusText 
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	// Add HMAC signature if secret is provided
+	// Add timestamped HMAC signature if secret is provided.
+	// Receivers must reject timestamps older than their replay window (recommend 5 min).
 	secret := w.config.WebhookSecret.String
 	if secret != "" {
+		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 		mac := hmac.New(sha256.New, []byte(secret))
+		mac.Write([]byte(timestamp))
+		mac.Write([]byte("."))
 		mac.Write(body)
 		signature := hex.EncodeToString(mac.Sum(nil))
+		req.Header.Set("X-Charon-Timestamp", timestamp)
 		req.Header.Set("X-Charon-Signature", signature)
 	}
 

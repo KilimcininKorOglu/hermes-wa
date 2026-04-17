@@ -6,8 +6,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
@@ -104,12 +106,18 @@ func SendIncomingMessageWebhook(instanceID string, data map[string]interface{}) 
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	// If webhook_secret is set, add HMAC signature header
+	// If webhook_secret is set, add timestamped HMAC signature.
+	// Receivers MUST reject signatures with timestamps older than their replay window
+	// (recommend 5 minutes). Sign `timestamp.body` to bind the signature to a moment in time.
 	if config.Secret != "" {
+		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 		mac := hmac.New(sha256.New, []byte(config.Secret))
+		mac.Write([]byte(timestamp))
+		mac.Write([]byte("."))
 		mac.Write(body)
 		signature := hex.EncodeToString(mac.Sum(nil))
 
+		req.Header.Set("X-Charon-Timestamp", timestamp)
 		req.Header.Set("X-Charon-Signature", signature)
 	}
 
