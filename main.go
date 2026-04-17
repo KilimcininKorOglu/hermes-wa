@@ -22,6 +22,8 @@ import (
 	"charon/internal/service"
 	"charon/internal/worker"
 
+	log2 "github.com/labstack/gommon/log"
+
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -205,7 +207,22 @@ func main() {
 			`"method":"${method}","uri":"${uri}","status":${status},` +
 			`"latency_ms":${latency},"bytes_in":${bytes_in},"bytes_out":${bytes_out}}` + "\n",
 	}))
-	e.Use(middleware.Recover())
+	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
+		StackSize:         4 << 10,
+		DisableStackAll:   false,
+		DisablePrintStack: false,
+		LogLevel:          log2.ERROR,
+		LogErrorFunc: func(c echo.Context, err error, stack []byte) error {
+			requestID := c.Response().Header().Get(echo.HeaderXRequestID)
+			if requestID == "" {
+				requestID = c.Request().Header.Get(echo.HeaderXRequestID)
+			}
+			userID, _ := c.Get("user_id").(int64)
+			log.Printf("PANIC: request_id=%s method=%s uri=%s user_id=%d err=%v\n%s",
+				requestID, c.Request().Method, c.Request().RequestURI, userID, err, stack)
+			return err
+		},
+	}))
 	e.Use(middleware.BodyLimit("100M"))
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		XFrameOptions:         "DENY",
