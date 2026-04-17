@@ -13,14 +13,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// RegisterRequest represents the registration request payload
-type RegisterRequest struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	FullName string `json:"full_name,omitempty"`
-}
-
 // LoginRequest represents the login request payload
 type LoginRequest struct {
 	Username string `json:"username"`
@@ -30,63 +22,6 @@ type LoginRequest struct {
 // AuthResponse represents the authentication response
 type AuthResponse struct {
 	User model.UserResponse `json:"user"`
-}
-
-// Register handles user registration
-// POST /register
-func Register(c echo.Context) error {
-	var req RegisterRequest
-	if err := c.Bind(&req); err != nil {
-		return ErrorResponse(c, http.StatusBadRequest, "Invalid request body", "BAD_REQUEST", err.Error())
-	}
-
-	// Validate required fields
-	if req.Username == "" || req.Email == "" || req.Password == "" {
-		return ErrorResponse(c, http.StatusBadRequest, "Username, email, and password are required", "MISSING_FIELDS", "")
-	}
-
-	// Create user
-	createReq := model.CreateUserRequest{
-		Username: req.Username,
-		Email:    req.Email,
-		Password: req.Password,
-		FullName: req.FullName,
-		Role:     "user", // Default role for registration
-	}
-
-	user, err := service.RegisterUser(createReq)
-	if err != nil {
-		return ErrorResponse(c, http.StatusBadRequest, err.Error(), "REGISTRATION_FAILED", "")
-	}
-
-	// Create session
-	ipAddress := c.RealIP()
-	userAgent := c.Request().UserAgent()
-	rawToken, err := service.CreateUserSession(user, ipAddress, userAgent)
-	if err != nil {
-		return ErrorResponse(c, http.StatusInternalServerError, "Failed to create session", "SESSION_CREATION_FAILED", err.Error())
-	}
-	setSessionCookie(c, rawToken, service.GetSessionExpiry())
-
-	auditLog := &model.AuditLog{
-		UserID:       sql.NullInt64{Int64: user.ID, Valid: true},
-		Action:       "user.register",
-		ResourceType: sql.NullString{String: "user", Valid: true},
-		ResourceID:   sql.NullString{String: user.Username, Valid: true},
-		IPAddress:    sql.NullString{String: ipAddress, Valid: true},
-		UserAgent:    sql.NullString{String: userAgent, Valid: true},
-	}
-
-	err = model.LogAction(auditLog)
-	if err != nil {
-		log.Printf("❌ ERROR: Failed to log audit: %v", err)
-	} else {
-		log.Printf("✅ SUCCESS: Audit log saved successfully")
-	}
-
-	return SuccessResponse(c, http.StatusCreated, "User registered successfully", AuthResponse{
-		User: user.ToResponse(),
-	})
 }
 
 // LoginUser handles user login with username/password
