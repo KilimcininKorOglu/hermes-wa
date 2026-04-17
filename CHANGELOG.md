@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.1] - 2026-04-17
+
+### Changed
+- Update dev Dockerfile base image from `golang:1.24-bookworm` to `golang:1.26-bookworm` so the dev container matches the `go.mod` toolchain and avoids `GOTOOLCHAIN=local` build failures
+- Refresh `web/package-lock.json` after running `npm install` inside the dev container
+
 ## [1.3.0] - 2026-04-17
 
 ### Added
