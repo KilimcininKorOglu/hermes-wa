@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -79,6 +78,10 @@ func InvalidateWebhookCache(instanceID string) {
 	log.Printf("🗑️ Webhook cache invalidated for instance: %s", instanceID)
 }
 
+// webhookRetryBackoffs is the delay sequence between retry attempts
+// (initial attempt + 3 retries = 4 total tries).
+var webhookRetryBackoffs = []time.Duration{1 * time.Second, 5 * time.Second, 30 * time.Second}
+
 // Refactored function - now uses cache
 func SendIncomingMessageWebhook(instanceID string, data map[string]interface{}) {
 	// Get webhook config from cache (not DB!)
@@ -99,26 +102,15 @@ func SendIncomingMessageWebhook(instanceID string, data map[string]interface{}) 
 		return
 	}
 
-	req, err := http.NewRequest("POST", config.URL, bytes.NewReader(body))
-	if err != nil {
-		log.Printf("webhook: new request error: %v", err)
-		return
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	// If webhook_secret is set, add timestamped HMAC signature.
-	// Receivers MUST reject signatures with timestamps older than their replay window
-	// (recommend 5 minutes). Sign `timestamp.body` to bind the signature to a moment in time.
+	var signatureHeader, timestampHeader string
 	if config.Secret != "" {
-		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+		ts := strconv.FormatInt(time.Now().Unix(), 10)
 		mac := hmac.New(sha256.New, []byte(config.Secret))
-		mac.Write([]byte(timestamp))
+		mac.Write([]byte(ts))
 		mac.Write([]byte("."))
 		mac.Write(body)
-		signature := hex.EncodeToString(mac.Sum(nil))
-
-		req.Header.Set("X-Charon-Timestamp", timestamp)
-		req.Header.Set("X-Charon-Signature", signature)
+		signatureHeader = hex.EncodeToString(mac.Sum(nil))
+		timestampHeader = ts
 	}
 
 	client := &http.Client{
@@ -127,12 +119,38 @@ func SendIncomingMessageWebhook(instanceID string, data map[string]interface{}) 
 			DialContext: helper.SSRFSafeDialContext,
 		},
 	}
+
 	go func() {
-		resp, err := client.Do(req)
-		if err != nil {
-			log.Printf("webhook: send error: %v", err)
-			return
+		attempts := len(webhookRetryBackoffs) + 1
+		for i := 0; i < attempts; i++ {
+			req, err := http.NewRequest("POST", config.URL, bytes.NewReader(body))
+			if err != nil {
+				log.Printf("webhook: new request error: %v", err)
+				return
+			}
+			req.Header.Set("Content-Type", "application/json")
+			if signatureHeader != "" {
+				req.Header.Set("X-Charon-Timestamp", timestampHeader)
+				req.Header.Set("X-Charon-Signature", signatureHeader)
+			}
+
+			resp, err := client.Do(req)
+			if err == nil {
+				status := resp.StatusCode
+				_ = resp.Body.Close()
+				// Success (2xx) or a client error the receiver owns (4xx) — stop retrying.
+				if status < 500 {
+					return
+				}
+				log.Printf("webhook: attempt %d returned status %d, will retry", i+1, status)
+			} else {
+				log.Printf("webhook: attempt %d send error: %v", i+1, err)
+			}
+
+			if i < len(webhookRetryBackoffs) {
+				time.Sleep(webhookRetryBackoffs[i])
+			}
 		}
-		_ = resp.Body.Close()
+		log.Printf("webhook: giving up after %d attempts for instance %s", attempts, instanceID)
 	}()
 }
