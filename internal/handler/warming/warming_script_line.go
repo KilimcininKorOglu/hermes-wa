@@ -327,6 +327,11 @@ func GenerateWarmingScriptLines(c echo.Context) error {
 
 	lines, err := warmingService.GenerateWarmingScriptLinesService(scriptID, req.Category, req.LineCount)
 	if err != nil {
+		if errors.Is(err, warmingService.ErrTemplateNotFound) {
+			return handler.ErrorResponse(c, http.StatusBadRequest,
+				fmt.Sprintf("No templates found for category '%s'", req.Category),
+				"INVALID_CATEGORY", err.Error())
+		}
 		if strings.Contains(err.Error(), "script not found") {
 			return handler.ErrorResponse(c, http.StatusNotFound, "Script not found", "SCRIPT_NOT_FOUND", "")
 		}

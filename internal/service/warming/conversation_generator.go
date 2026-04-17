@@ -4,9 +4,13 @@ import (
 	"charon/database"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/rand"
 )
+
+// ErrTemplateNotFound is returned when no warming template matches the requested category.
+var ErrTemplateNotFound = errors.New("warming template not found for category")
 
 // TemplateLine represents a single line in template
 type TemplateLine struct {
@@ -18,10 +22,10 @@ type TemplateLine struct {
 // GetConversationTemplatesFromDB retrieves templates from database by category
 func GetConversationTemplatesFromDB(category string) ([]TemplateLine, error) {
 	query := `
-		SELECT structure 
-		FROM warming_templates 
-		WHERE category = $1 
-		ORDER BY RANDOM() 
+		SELECT structure
+		FROM warming_templates
+		WHERE category = $1
+		ORDER BY RANDOM()
 		LIMIT 1
 	`
 
@@ -29,7 +33,7 @@ func GetConversationTemplatesFromDB(category string) ([]TemplateLine, error) {
 	err := database.AppDB.QueryRow(query, category).Scan(&structureJSON)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("no templates found for category: %s", category)
+			return nil, fmt.Errorf("%w: %s", ErrTemplateNotFound, category)
 		}
 		return nil, fmt.Errorf("failed to query template: %w", err)
 	}
@@ -42,13 +46,16 @@ func GetConversationTemplatesFromDB(category string) ([]TemplateLine, error) {
 	return lines, nil
 }
 
-// GenerateConversationLines generates conversation lines based on template from database
-func GenerateConversationLines(category string, lineCount int) []TemplateLine {
-	// Try to get template from database
+// GenerateConversationLines generates conversation lines based on template from database.
+// Errors are propagated so callers can surface missing-category / malformed-template problems
+// instead of silently persisting an unchanged script.
+func GenerateConversationLines(category string, lineCount int) ([]TemplateLine, error) {
 	templateLines, err := GetConversationTemplatesFromDB(category)
 	if err != nil {
-		// Fallback to empty if no templates found
-		return []TemplateLine{}
+		return nil, err
+	}
+	if len(templateLines) == 0 {
+		return nil, fmt.Errorf("%w: %s (empty structure)", ErrTemplateNotFound, category)
 	}
 
 	var result []TemplateLine
@@ -61,6 +68,9 @@ func GenerateConversationLines(category string, lineCount int) []TemplateLine {
 		}
 
 		templateLine := templateLines[templateIndex]
+		if len(templateLine.MessageOptions) == 0 {
+			return nil, fmt.Errorf("template for %q has an entry without messageOptions", category)
+		}
 
 		// Random select from message options
 		selectedMessage := templateLine.MessageOptions[rand.Intn(len(templateLine.MessageOptions))]
@@ -73,7 +83,7 @@ func GenerateConversationLines(category string, lineCount int) []TemplateLine {
 		templateIndex++
 	}
 
-	return result
+	return result, nil
 }
 
 // RandomTypingDuration returns random typing duration between 3-7 seconds

@@ -186,7 +186,10 @@ func GenerateWarmingScriptLinesService(scriptID int64, category string, lineCoun
 	}
 
 	// Generate conversation lines from template
-	templateLines := GenerateConversationLines(category, lineCount)
+	templateLines, err := GenerateConversationLines(category, lineCount)
+	if err != nil {
+		return nil, err
+	}
 
 	// Create lines in database
 	var createdLines []warmingModel.WarmingScriptLine
