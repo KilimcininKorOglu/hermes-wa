@@ -4,10 +4,28 @@ package helper
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"charon/database"
 )
+
+// execInTx runs a DDL block inside a transaction so partial failures roll back
+// cleanly rather than leaving the schema in an inconsistent state.
+func execInTx(db *sql.DB, stmt string) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("begin tx: %w", err)
+	}
+	if _, err := tx.Exec(stmt); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit tx: %w", err)
+	}
+	return nil
+}
 
 func InitCustomSchema() {
 	db := database.AppDB
@@ -40,7 +58,7 @@ func InitCustomSchema() {
         CREATE INDEX IF NOT EXISTS idx_instances_phone_number ON instances(phone_number);
         CREATE INDEX IF NOT EXISTS idx_instances_status ON instances(status);
     `
-	if _, err := db.Exec(baseSchema); err != nil {
+	if err := execInTx(db, baseSchema); err != nil {
 		log.Fatalf("failed to init base schema: %v", err)
 	}
 
@@ -59,7 +77,7 @@ func InitCustomSchema() {
         CREATE INDEX IF NOT EXISTS idx_instances_circle ON instances(circle);
         CREATE INDEX IF NOT EXISTS idx_instances_used ON instances(used);
     `
-	if _, err := db.Exec(alterSchema); err != nil {
+	if err := execInTx(db, alterSchema); err != nil {
 		log.Fatalf("failed to alter schema: %v", err)
 	}
 
@@ -210,7 +228,7 @@ func InitCustomSchema() {
         -- Composite index for monitoring query: WHERE room_id = ? ORDER BY executed_at DESC
         CREATE INDEX IF NOT EXISTS idx_logs_room_executed ON warming_logs(room_id, executed_at DESC);
     `
-	if _, err := db.Exec(warmingSchema); err != nil {
+	if err := execInTx(db, warmingSchema); err != nil {
 		log.Fatalf("failed to init warming schema: %v", err)
 	}
 
@@ -238,7 +256,7 @@ func InitCustomSchema() {
 		CREATE INDEX IF NOT EXISTS idx_rooms_type ON warming_rooms(room_type);
 		CREATE INDEX IF NOT EXISTS idx_rooms_whitelist ON warming_rooms(whitelisted_number);
 	`
-	if _, err := db.Exec(alterWarmingSchema); err != nil {
+	if err := execInTx(db, alterWarmingSchema); err != nil {
 		log.Fatalf("failed to alter warming schema: %v", err)
 	}
 
@@ -258,7 +276,7 @@ func InitCustomSchema() {
 		COMMENT ON COLUMN warming_templates.category IS 'Template category: casual, business, customer_service';
 		COMMENT ON COLUMN warming_templates.structure IS 'JSON array of dialog lines with message options';
 	`
-	if _, err := db.Exec(templatesSchema); err != nil {
+	if err := execInTx(db, templatesSchema); err != nil {
 		log.Fatalf("failed to create warming_templates table: %v", err)
 	}
 
@@ -408,7 +426,7 @@ func InitCustomSchema() {
 		COMMENT ON COLUMN audit_logs.action IS 'Action performed: user.login, user.register, instance.create, message.send, etc.';
 		COMMENT ON COLUMN audit_logs.details IS 'Additional context as JSON';
 	`
-	if _, err := db.Exec(userManagementSchema); err != nil {
+	if err := execInTx(db, userManagementSchema); err != nil {
 		log.Fatalf("failed to init user management schema: %v", err)
 	}
 
